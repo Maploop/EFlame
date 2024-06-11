@@ -1,0 +1,129 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="main.cpp">
+      <Filter>Engine\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Highwind\libraries\glad\src\glad.c">
+      <Filter>Engine\Vendor</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Engine\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="VBO.cpp">
+      <Filter>Engine\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="EBO.cpp">
+      <Filter>Engine\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="VAO.cpp">
+      <Filter>Engine\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Texture.cpp">
+      <Filter>Engine\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Engine\Core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Libraries\include\imgui\imgui.cpp">
+      <Filter>Engine\Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Libraries\include\imgui\imgui_demo.cpp">
+      <Filter>Engine\Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Libraries\include\imgui\imgui_draw.cpp">
+      <Filter>Engine\Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Libraries\include\imgui\imgui_impl_glfw.cpp">
+      <Filter>Engine\Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Libraries\include\imgui\imgui_impl_opengl3.cpp">
+      <Filter>Engine\Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Libraries\include\imgui\imgui_tables.cpp">
+      <Filter>Engine\Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Libraries\include\imgui\imgui_widgets.cpp">
+      <Filter>Engine\Vendor\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="CleriaGame.cpp">
+      <Filter>Game</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Engine">
+      <UniqueIdentifier>{1be6e541-03e1-4a58-b4e6-8cb0bba1a89c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Game">
+      <UniqueIdentifier>{83f12d5f-9641-4e68-8f37-72a0c1056a04}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Core">
+      <UniqueIdentifier>{39802283-a890-4e44-9c7a-213dc6903aa5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Vendor">
+      <UniqueIdentifier>{5358eb6a-5048-4243-abd1-1d81a4e1d393}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Vendor\imgui">
+      <UniqueIdentifier>{cac497cf-151e-40cb-999e-475c8830a8ce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Vendor\imgui\headers">
+      <UniqueIdentifier>{1ece2c18-7a74-4b87-86ef-6cad314ea95e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Core\Game">
+      <UniqueIdentifier>{9a3f6501-004f-4a89-945f-c901878d32bb}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="logger.hpp">
+      <Filter>Engine\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Engine\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="VBO.h">
+      <Filter>Engine\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="EBO.h">
+      <Filter>Engine\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="VAO.h">
+      <Filter>Engine\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Texture.h">
+      <Filter>Engine\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Engine\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\include\imgui\imgui_impl_glfw.h">
+      <Filter>Engine\Vendor\imgui\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\include\imgui\imgui_impl_opengl3.h">
+      <Filter>Engine\Vendor\imgui\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\include\imgui\imgui_impl_opengl3_loader.h">
+      <Filter>Engine\Vendor\imgui\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\include\imgui\imgui_internal.h">
+      <Filter>Engine\Vendor\imgui\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\include\imgui\imstb_rectpack.h">
+      <Filter>Engine\Vendor\imgui\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\include\imgui\imstb_textedit.h">
+      <Filter>Engine\Vendor\imgui\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\include\imgui\imstb_truetype.h">
+      <Filter>Engine\Vendor\imgui\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\include\imgui\imconfig.h">
+      <Filter>Engine\Vendor\imgui\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Libraries\include\imgui\imgui.h">
+      <Filter>Engine\Vendor\imgui\headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Game.h">
+      <Filter>Engine\Core\Game</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

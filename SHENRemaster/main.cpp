@@ -15,11 +15,8 @@
 #include "imgui/imgui_impl_glfw.h"
 
 #include "logger.hpp"
-#include "Texture.h"
-#include "Camera.h"
 #include "Game.h"
-#include "VAO.h"
-#include "EBO.h"
+#include "Mesh.h"
 
 const int OGL_MJV = 3;
 const int OGL_MNV = 3;
@@ -31,6 +28,8 @@ void imguiRenderpass();
 void window_resize_callback(GLFWwindow* window, int width, int height);
 
 Game game = Game();
+bool gameUseDirLight = true;
+glm::vec3 dirLightAngle = glm::vec3(1.0, 1.0, 0.0);
 
 Camera camera(SCR_WIDTH, SCR_HEIGHT, glm::vec3(0.0f, 0.0f, 2.0f));
 GLFWwindow* window;
@@ -58,12 +57,12 @@ int main() {
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Vertices coordinates
-	GLfloat vertices[] =
-	{ //     COORDINATES     /        COLORS        /    TexCoord    /       NORMALS     //
-		-1.0f, 0.0f,  1.0f,		0.0f, 0.0f, 0.0f,		0.0f, 0.0f,		0.0f, 1.0f, 0.0f,
-		-1.0f, 0.0f, -1.0f,		0.0f, 0.0f, 0.0f,		0.0f, 1.0f,		0.0f, 1.0f, 0.0f,
-		 1.0f, 0.0f, -1.0f,		0.0f, 0.0f, 0.0f,		1.0f, 1.0f,		0.0f, 1.0f, 0.0f,
-		 1.0f, 0.0f,  1.0f,		0.0f, 0.0f, 0.0f,		1.0f, 0.0f,		0.0f, 1.0f, 0.0f
+	Vertex vertices[] =
+	{ //               COORDINATES           /            COLORS          /           NORMALS         /       TEXTURE COORDINATES    //
+		Vertex{glm::vec3(-1.0f, 0.0f,  1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 0.0f)},
+		Vertex{glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 1.0f)},
+		Vertex{glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 1.0f)},
+		Vertex{glm::vec3(1.0f, 0.0f,  1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 0.0f)}
 	};
 
 	// Indices for vertices order
@@ -73,16 +72,16 @@ int main() {
 		0, 2, 3
 	};
 
-	GLfloat lightVertices[] =
+	Vertex lightVertices[] =
 	{ //     COORDINATES     //
-		-0.1f, -0.1f,  0.1f,
-		-0.1f, -0.1f, -0.1f,
-		 0.1f, -0.1f, -0.1f,
-		 0.1f, -0.1f,  0.1f,
-		-0.1f,  0.1f,  0.1f,
-		-0.1f,  0.1f, -0.1f,
-		 0.1f,  0.1f, -0.1f,
-		 0.1f,  0.1f,  0.1f
+		Vertex{glm::vec3(-0.1f, -0.1f,  0.1f)},
+		Vertex{glm::vec3(-0.1f, -0.1f, -0.1f)},
+		Vertex{glm::vec3(0.1f, -0.1f, -0.1f)},
+		Vertex{glm::vec3(0.1f, -0.1f,  0.1f)},
+		Vertex{glm::vec3(-0.1f,  0.1f,  0.1f)},
+		Vertex{glm::vec3(-0.1f,  0.1f, -0.1f)},
+		Vertex{glm::vec3(0.1f,  0.1f, -0.1f)},
+		Vertex{glm::vec3(0.1f,  0.1f,  0.1f)}
 	};
 
 	GLuint lightIndices[] =
@@ -122,35 +121,24 @@ int main() {
 
 	gladLoadGL();
 	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+	SHINFO("StartupHandler > Loading textures...");
+	Texture textures[]{
+		Texture("./sh_res/sh_tex/planks.png", "diffuse", 0, GL_RGBA, GL_UNSIGNED_BYTE),
+		Texture("./sh_res/sh_tex/planksSpec.png", "specular", 1, GL_RED, GL_UNSIGNED_BYTE)
+	};
+
 	SHINFO("(CALLBACK) StartupHandler > \"gladLoadGL\" -> OpenGL v%i.%i has been initialized.", OGL_MJV, OGL_MNV);
 
 	Shader coreProgram("./sh_res/sh_shader/Core.vs", "./sh_res/sh_shader/Core.fs");
+	std::vector<Vertex> verts(vertices, vertices + sizeof(vertices) / sizeof(Vertex));
+	std::vector<GLuint> ind(indices, indices + sizeof(indices) / sizeof(GLuint));
+	std::vector<Texture> tex(textures, textures + sizeof(textures) / sizeof(Texture));
+	Mesh floor(verts, ind, tex);
+
 	Shader lightShader("./sh_res/sh_shader/Light.vs", "./sh_res/sh_shader/Light.fs");
-
-	VAO lightVAO;
-	lightVAO.Bind();
-
-	VBO lightVBO(lightVertices, sizeof(lightVertices));
-	EBO lightEBO(lightIndices, sizeof(lightIndices));
-
-	lightVAO.LinkAttrib(lightVBO, 0, 3, GL_FLOAT, 3 * sizeof(float), (void*)0);
-
-	lightVAO.Unbind();
-	lightVBO.Unbind();
-	lightEBO.Unbind();
-
-	VAO vao1;
-	vao1.Bind();
-	VBO vbo1(vertices, sizeof(vertices));
-	EBO ebo1(indices, sizeof(indices));
-
-	vao1.LinkAttrib(vbo1, 0, 3, GL_FLOAT, 11 * sizeof(float), (void*) 0);
-	vao1.LinkAttrib(vbo1, 1, 3, GL_FLOAT, 11 * sizeof(float), (void*) (3 * sizeof(float)));
-	vao1.LinkAttrib(vbo1, 2, 2, GL_FLOAT, 11 * sizeof(float), (void*) (6 * sizeof(float)));
-	vao1.LinkAttrib(vbo1, 3, 3, GL_FLOAT, 11 * sizeof(float), (void*) (8 * sizeof(float)));
-	vao1.Unbind();
-	vbo1.Unbind();
-	ebo1.Unbind();
+	std::vector<Vertex> lightVerts(lightVertices, lightVertices + sizeof(lightVertices) / sizeof(Vertex));
+	std::vector<GLuint> lightInd(lightIndices, lightIndices + sizeof(lightIndices) / sizeof(GLuint));
+	Mesh light(lightVerts, lightInd, tex);
 
 	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	glm::vec3 lightPos = glm::vec3(0.5f, 2.0f, 0.5f);
@@ -171,12 +159,6 @@ int main() {
 	coreProgram.SetVec3("lightPos", lightPos);
 	coreProgram.SetVec3("camPos", camera.position);
 
-	// Texture container = Texture("./sh_res/sh_tex/container.png", GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE);
-	Texture planks = Texture("./sh_res/sh_tex/planks.png", GL_TEXTURE_2D, 1, GL_RGBA, GL_UNSIGNED_BYTE);
-	Texture planksSpec = Texture("./sh_res/sh_tex/planksSpec.png", GL_TEXTURE_2D, 2, GL_RED, GL_UNSIGNED_BYTE);
-
-	planks.AssignUnit(coreProgram, "tex00", 1);
-	planksSpec.AssignUnit(coreProgram, "tex01", 2);
 
 	glEnable(GL_DEPTH_TEST);
 
@@ -195,19 +177,13 @@ int main() {
 		camera.UpdateMatrix(70.0f, 0.1f, 100.0f);
 
 		coreProgram.Activate();
-		coreProgram.SetVec3("camPos", camera.position);
+		coreProgram.SetInt("directionalLightEnabled", gameUseDirLight);
+		coreProgram.SetVec3("dirLightAngle", dirLightAngle);
 
-		camera.Matrix(coreProgram, "camMatrix");
+		// camera.Matrix(coreProgram, "camMatrix");
 
-		planks.Bind();
-		planksSpec.Bind();
-		vao1.Bind();
-		glDrawElements(GL_TRIANGLES, sizeof(indices) / sizeof(int), GL_UNSIGNED_INT, 0);
-
-		lightShader.Activate();
-		camera.Matrix(lightShader, "camMatrix");
-		lightVAO.Bind();
-		glDrawElements(GL_TRIANGLES, sizeof(lightIndices) / sizeof(int), GL_UNSIGNED_INT, 0);
+		floor.Render(coreProgram, camera);
+		light.Render(lightShader, camera);
 
 		imguiRenderpass();
 
@@ -221,13 +197,9 @@ int main() {
 	}
 
 	SHINFO("ProcessHandler > Shutting down SHEN...");
-	vao1.Free();
-	vbo1.Free();
-	ebo1.Free();
 	//container.free();
-	planks.Free();
-	planksSpec.Free();
 	coreProgram.Free();
+	lightShader.Free();
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
@@ -249,6 +221,11 @@ void imguiRenderpass() {
 	if (ImGui::Button("Exit")) {
 		glfwSetWindowShouldClose(window, true);
 	}
+	ImGui::End();
+
+	ImGui::Begin("World Options");
+	ImGui::Checkbox("Use Directional Light", &gameUseDirLight);
+	ImGui::DragFloat3("DL Angle", glm::value_ptr(dirLightAngle), 0.0, 2.0);
 	ImGui::End();
 
 	ImGui::Render();

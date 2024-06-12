@@ -49,6 +49,9 @@
     <ClCompile Include="CleriaGame.cpp">
       <Filter>Game</Filter>
     </ClCompile>
+    <ClCompile Include="Mesh.cpp">
+      <Filter>Engine\Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
@@ -124,6 +127,9 @@
     </ClInclude>
     <ClInclude Include="Game.h">
       <Filter>Engine\Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Engine\Core</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

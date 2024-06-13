@@ -4,8 +4,8 @@
 Shader::Shader(const char* vertexPath, const char* fragmentPath) {
 	SHINFO("ShaderHandler > Loading in Shader '%s'...", vertexPath);
 
-	std::string vert = getFileContnets(vertexPath);
-	std::string frag = getFileContnets(fragmentPath);
+	std::string vert = GetFileContents(vertexPath);
+	std::string frag = GetFileContents(fragmentPath);
 
 	int success;
 	char infoLog[512];
@@ -80,20 +80,16 @@ void Shader::SetVec3(const char* location, glm::vec3 value) {
 	glUniform3fv(glGetUniformLocation(ID, location), 1, glm::value_ptr(value));
 }
 
-static std::string getFileContnets(const char* filePath) {
-	std::string temp = "";
-	std::string src = "";
-
-	std::ifstream in_file;
-	in_file.open(filePath);
-	if (in_file.is_open()) {
-		while (std::getline(in_file, temp))
-			src += temp + "\n";
+std::string Shader::GetFileContents(const char* pathName) const noexcept {
+	std::ifstream in(pathName, std::ios::binary);
+	if (in) {
+		std::string contents;
+		in.seekg(0, std::ios::end);
+		contents.resize(in.tellg());
+		in.seekg(0, std::ios::beg);
+		in.read(&contents[0], contents.size());
+		in.close();
+		return(contents);
 	}
-	else {
-		SHERROR("Shader Error: Could not open file: %s", filePath);
-	}
-
-	in_file.close();
-	return src;
+	throw(errno);
 }

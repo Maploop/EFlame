@@ -16,19 +16,21 @@
 
 #include "logger.hpp"
 #include "Game.h"
-#include "Mesh.h"
+#include "Model.h"
 
 const int OGL_MJV = 3;
 const int OGL_MNV = 3;
 const char* APP_VERSION = "1.0-PRI";
 
-const int SCR_WIDTH = 1920, SCR_HEIGHT = 1080;
+const int SCR_WIDTH = 1280, SCR_HEIGHT = 720;
 
 void imguiRenderpass();
 void window_resize_callback(GLFWwindow* window, int width, int height);
 
 Game game = Game();
 bool gameUseDirLight = true;
+bool depthVisualization = true;
+float fogLevel = 70.0;
 glm::vec3 dirLightAngle = glm::vec3(1.0, 1.0, 0.0);
 
 Camera camera(SCR_WIDTH, SCR_HEIGHT, glm::vec3(0.0f, 0.0f, 2.0f));
@@ -56,52 +58,6 @@ int main() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OGL_MNV);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	// Vertices coordinates
-	Vertex vertices[] =
-	{ //               COORDINATES           /            COLORS          /           NORMALS         /       TEXTURE COORDINATES    //
-		Vertex{glm::vec3(-1.0f, 0.0f,  1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 0.0f)},
-		Vertex{glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(0.0f, 1.0f)},
-		Vertex{glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 1.0f)},
-		Vertex{glm::vec3(1.0f, 0.0f,  1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(1.0f, 1.0f, 1.0f), glm::vec2(1.0f, 0.0f)}
-	};
-
-	// Indices for vertices order
-	GLuint indices[] =
-	{
-		0, 1, 2,
-		0, 2, 3
-	};
-
-	Vertex lightVertices[] =
-	{ //     COORDINATES     //
-		Vertex{glm::vec3(-0.1f, -0.1f,  0.1f)},
-		Vertex{glm::vec3(-0.1f, -0.1f, -0.1f)},
-		Vertex{glm::vec3(0.1f, -0.1f, -0.1f)},
-		Vertex{glm::vec3(0.1f, -0.1f,  0.1f)},
-		Vertex{glm::vec3(-0.1f,  0.1f,  0.1f)},
-		Vertex{glm::vec3(-0.1f,  0.1f, -0.1f)},
-		Vertex{glm::vec3(0.1f,  0.1f, -0.1f)},
-		Vertex{glm::vec3(0.1f,  0.1f,  0.1f)}
-	};
-
-	GLuint lightIndices[] =
-	{
-		0, 1, 2,
-		0, 2, 3,
-		0, 4, 7,
-		0, 7, 3,
-		3, 7, 6,
-		3, 6, 2,
-		2, 6, 5,
-		2, 5, 1,
-		1, 5, 4,
-		1, 4, 0,
-		4, 5, 6,
-		4, 6, 7
-	};
-
-
-
 	// TODO -- Fix [window] being NULL apparently?
 	window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "EFlame v1.0", NULL, NULL);
 	if (window == NULL) {
@@ -121,46 +77,33 @@ int main() {
 
 	gladLoadGL();
 	glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
-	SHINFO("StartupHandler > Loading textures...");
-	Texture textures[]{
-		Texture("./sh_res/sh_tex/planks.png", "diffuse", 0, GL_RGBA, GL_UNSIGNED_BYTE),
-		Texture("./sh_res/sh_tex/planksSpec.png", "specular", 1, GL_RED, GL_UNSIGNED_BYTE)
-	};
 
 	SHINFO("(CALLBACK) StartupHandler > \"gladLoadGL\" -> OpenGL v%i.%i has been initialized.", OGL_MJV, OGL_MNV);
 
 	Shader coreProgram("./sh_res/sh_shader/Core.vs", "./sh_res/sh_shader/Core.fs");
-	std::vector<Vertex> verts(vertices, vertices + sizeof(vertices) / sizeof(Vertex));
-	std::vector<GLuint> ind(indices, indices + sizeof(indices) / sizeof(GLuint));
-	std::vector<Texture> tex(textures, textures + sizeof(textures) / sizeof(Texture));
-	Mesh floor(verts, ind, tex);
-
-	Shader lightShader("./sh_res/sh_shader/Light.vs", "./sh_res/sh_shader/Light.fs");
-	std::vector<Vertex> lightVerts(lightVertices, lightVertices + sizeof(lightVertices) / sizeof(Vertex));
-	std::vector<GLuint> lightInd(lightIndices, lightIndices + sizeof(lightIndices) / sizeof(GLuint));
-	Mesh light(lightVerts, lightInd, tex);
+	Shader grassShader("./sh_res/sh_shader/Core.vs", "./sh_res/sh_shader/Grass.fs");
 
 	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	glm::vec3 lightPos = glm::vec3(0.5f, 2.0f, 0.5f);
+	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
 	glm::mat4 lightModel = glm::mat4(1.0f);
 	lightModel = glm::translate(lightModel, lightPos);
 
-	glm::vec3 pyramidPos = glm::vec3(0.0f, 0.0f, 0.0f);
-	glm::mat4 pyramidModel = glm::mat4(1.0f);
-	pyramidModel = glm::translate(pyramidModel, pyramidPos);
-
-	lightShader.Activate();
-	lightShader.SetMat4("model", lightModel);
-	lightShader.SetVec4("lightColor", lightColor);
-
 	coreProgram.Activate();
-	coreProgram.SetMat4("model", pyramidModel);
 	coreProgram.SetVec4("lightColor", lightColor);
 	coreProgram.SetVec3("lightPos", lightPos);
-	coreProgram.SetVec3("camPos", camera.position);
+
+	grassShader.Activate();
+	grassShader.SetVec4("lightColor", lightColor);
+	grassShader.SetVec3("lightPos", lightPos);
 
 
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
+	glCullFace(GL_FRONT);
+	glFrontFace(GL_CCW);
+
+	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+	glDepthFunc(GL_LESS);
 
 	SHINFO("UIHandler > Initializing ImGui with OpenGL hook...");
 	ImGui::CreateContext();
@@ -170,20 +113,25 @@ int main() {
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init();
 
+	Model grass("./sh_res/sh_3d/grass/scene.gltf");
+	Model sword("./sh_res/sh_3d/sword/scene.gltf");
+	Model ground("./sh_res/sh_3d/ground/scene.gltf");
+
 	while (!glfwWindowShouldClose(window)) {
-		glClearColor(0.07f, 0.13f, 0.17f, 1.0f);
+		glClearColor(0.85f, 0.85f, 0.90f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		camera.HandleInput(window);
 		camera.UpdateMatrix(70.0f, 0.1f, 100.0f);
 
+		//ground.Render(coreProgram, camera);
+		sword.Render(coreProgram, camera);
+		//grass.Render(grassShader, camera);
+
 		coreProgram.Activate();
 		coreProgram.SetInt("directionalLightEnabled", gameUseDirLight);
+		coreProgram.SetInt("depthVisual", depthVisualization);
+		coreProgram.SetFloat("fogLevel", 100.0f - fogLevel);
 		coreProgram.SetVec3("dirLightAngle", dirLightAngle);
-
-		// camera.Matrix(coreProgram, "camMatrix");
-
-		floor.Render(coreProgram, camera);
-		light.Render(lightShader, camera);
 
 		imguiRenderpass();
 
@@ -197,9 +145,8 @@ int main() {
 	}
 
 	SHINFO("ProcessHandler > Shutting down SHEN...");
-	//container.free();
 	coreProgram.Free();
-	lightShader.Free();
+	grassShader.Free();
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
@@ -226,6 +173,9 @@ void imguiRenderpass() {
 	ImGui::Begin("World Options");
 	ImGui::Checkbox("Use Directional Light", &gameUseDirLight);
 	ImGui::DragFloat3("DL Angle", glm::value_ptr(dirLightAngle), 0.0, 2.0);
+	ImGui::Text("Render");
+	ImGui::Checkbox("Placebo Fog", &depthVisualization);
+	ImGui::SliderFloat("Fog Level", &fogLevel, 0.0f, 100.0f);
 	ImGui::End();
 
 	ImGui::Render();

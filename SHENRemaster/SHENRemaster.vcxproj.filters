@@ -52,6 +52,9 @@
     <ClCompile Include="Mesh.cpp">
       <Filter>Engine\Core</Filter>
     </ClCompile>
+    <ClCompile Include="Model.cpp">
+      <Filter>Engine\Core</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
@@ -129,6 +132,9 @@
       <Filter>Engine\Core\Game</Filter>
     </ClInclude>
     <ClInclude Include="Mesh.h">
+      <Filter>Engine\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
       <Filter>Engine\Core</Filter>
     </ClInclude>
   </ItemGroup>

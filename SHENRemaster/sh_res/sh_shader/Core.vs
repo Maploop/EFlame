@@ -11,15 +11,20 @@ out vec3 Normal;
 out vec3 color;
 out vec2 texCoord;
 
+// Camera
 uniform mat4 camMatrix;
+// Transformations and matrices
 uniform mat4 model;
+uniform mat4 translation;
+uniform mat4 rotation;
+uniform mat4 scale;
 
 void main() {
-    currentPos = vec3(model * vec4(aPos, 1.0));
-
-    // gl_Position = vec4(aPos.x + (aPos.x * scale), aPos.y + (aPos.y * scale), aPos.z + (aPos.z * scale), 1.0);
-    gl_Position = camMatrix * model * vec4(currentPos, 1.0f);
-    color = aColor;
-    texCoord = aTexCoords;
+    currentPos = vec3(model * translation * rotation * scale * vec4(aPos, 1.0));
     Normal = aNormal;
+    color = aColor;
+    texCoord = mat2(0.0, -1.0, 1.0, 0.0) * aTexCoords;
+
+
+    gl_Position = camMatrix * vec4(currentPos, 1.0);
 }

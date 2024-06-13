@@ -10,8 +10,6 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-std::string getFileContnets(const char* pathName);
-
 class Shader {
 private:
 	GLuint ID;
@@ -31,5 +29,7 @@ public:
 	void SetMat4(const char* location, glm::mat4 value);
 	void SetVec4(const char* location, glm::vec4 value);
 	void SetVec3(const char* location, glm::vec3 value);
+
+	std::string GetFileContents(const char* pathName) const noexcept;
 };
 

@@ -15,7 +15,7 @@ void Camera::UpdateMatrix(float FOVdeg, float near, float far) {
 	glm::mat4 projection = glm::mat4(1.0f);
 
 	view = glm::lookAt(position, position + orientation, up);
-	projection = glm::perspective(glm::radians(FOVdeg), (float)(width / height), near, far);
+	projection = glm::perspective(glm::radians(FOVdeg), (float)width / height, near, far);
 
 	this->camMatrix = projection * view;
 }

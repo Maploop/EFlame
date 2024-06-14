@@ -11,6 +11,8 @@ public:
 
 	void Render(Shader& shader, Camera& camera);
 
+	std::vector<std::string> loadedTexName;
+	std::vector<Texture> loadedTex;
 private:
 	const char* file;
 	std::vector<unsigned char> data;
@@ -21,9 +23,6 @@ private:
 	std::vector<glm::quat> rotationsMeshes;
 	std::vector<glm::vec3> scalesMeshes;
 	std::vector<glm::mat4> matricesMeshes;
-
-	std::vector<std::string> loadedTexName;
-	std::vector<Texture> loadedTex;
 
 	void LoadMesh(unsigned int indMesh);
 

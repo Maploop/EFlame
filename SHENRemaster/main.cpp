@@ -14,9 +14,13 @@
 #include "imgui/imgui_impl_opengl3.h"
 #include "imgui/imgui_impl_glfw.h"
 
+#include <map>
+
 #include "logger.hpp"
 #include "Game.h"
 #include "Model.h"
+#include "SkyBoxManager.h"
+#include "PostProcessManager.h"
 
 const int OGL_MJV = 3;
 const int OGL_MNV = 3;
@@ -26,6 +30,8 @@ const int SCR_WIDTH = 1280, SCR_HEIGHT = 720;
 
 void imguiRenderpass();
 void window_resize_callback(GLFWwindow* window, int width, int height);
+
+static std::map<const char*, Model*> hierarchy;
 
 Game game = Game();
 bool gameUseDirLight = true;
@@ -81,8 +87,7 @@ int main() {
 	SHINFO("(CALLBACK) StartupHandler > \"gladLoadGL\" -> OpenGL v%i.%i has been initialized.", OGL_MJV, OGL_MNV);
 
 	Shader coreProgram("./sh_res/sh_shader/Core.vs", "./sh_res/sh_shader/Core.fs");
-	Shader grassShader("./sh_res/sh_shader/Core.vs", "./sh_res/sh_shader/Grass.fs");
-
+	
 	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
 	glm::mat4 lightModel = glm::mat4(1.0f);
@@ -92,18 +97,32 @@ int main() {
 	coreProgram.SetVec4("lightColor", lightColor);
 	coreProgram.SetVec3("lightPos", lightPos);
 
-	grassShader.Activate();
-	grassShader.SetVec4("lightColor", lightColor);
-	grassShader.SetVec3("lightPos", lightPos);
+	
 
 
-	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
 	glFrontFace(GL_CCW);
 
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	glDepthFunc(GL_LESS);
+
+
+
+	// Post processing
+	SHINFO("PostProcessing > Initializing PostProcessManager...");
+	PostProcessManager ppManager("./sh_res/sh_shader/Framebuffer.vs", "./sh_res/sh_shader/Framebuffer.fs", SCR_WIDTH, SCR_HEIGHT);
+
+	auto fboStatus = ppManager.InitializeSelf();
+	if (fboStatus != GL_FRAMEBUFFER_COMPLETE)
+		SHERROR("PostProcessing > Framebuffer error:: %s", fboStatus);
+	
+	SHINFO("PostProcessing > PostProcessManager initialized successfully!");
+	// End post processing
+
+	SkyBoxManager skyboxManager("./sh_res/sh_shader/Skybox.vs", "./sh_res/sh_shader/Skybox.fs", SCR_WIDTH, SCR_HEIGHT, 70.0f, 0.1f, 100.0f, camera);
+	skyboxManager.InitializeSelf();
 
 	SHINFO("UIHandler > Initializing ImGui with OpenGL hook...");
 	ImGui::CreateContext();
@@ -113,25 +132,36 @@ int main() {
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init();
 
-	Model grass("./sh_res/sh_3d/grass/scene.gltf");
 	Model sword("./sh_res/sh_3d/sword/scene.gltf");
-	Model ground("./sh_res/sh_3d/ground/scene.gltf");
+	Model tomb("./sh_res/sh_3d/tomb/scene.gltf");
+	hierarchy.insert({"Sword", &sword});
+	hierarchy.insert({"Tomb", &tomb});
+
+	
 
 	while (!glfwWindowShouldClose(window)) {
+		// PreP
+		ppManager.PreProcess();
+
 		glClearColor(0.85f, 0.85f, 0.90f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		camera.HandleInput(window);
 		camera.UpdateMatrix(70.0f, 0.1f, 100.0f);
 
-		//ground.Render(coreProgram, camera);
+		glEnable(GL_DEPTH_TEST);
+
 		sword.Render(coreProgram, camera);
-		//grass.Render(grassShader, camera);
+		tomb.Render(coreProgram, camera);
 
 		coreProgram.Activate();
 		coreProgram.SetInt("directionalLightEnabled", gameUseDirLight);
 		coreProgram.SetInt("depthVisual", depthVisualization);
 		coreProgram.SetFloat("fogLevel", 100.0f - fogLevel);
 		coreProgram.SetVec3("dirLightAngle", dirLightAngle);
+
+		// PP
+		skyboxManager.Render();
+		ppManager.PostProcess();
 
 		imguiRenderpass();
 
@@ -146,12 +176,15 @@ int main() {
 
 	SHINFO("ProcessHandler > Shutting down SHEN...");
 	coreProgram.Free();
-	grassShader.Free();
+	skyboxManager.Free();
+	ppManager.Free();
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
 	return 0;
 }
+
+glm::vec3 pos = glm::vec3(1.0, 1.0, 1.0);
 
 void imguiRenderpass() {
 	ImGui_ImplGlfw_NewFrame();
@@ -176,6 +209,22 @@ void imguiRenderpass() {
 	ImGui::Text("Render");
 	ImGui::Checkbox("Placebo Fog", &depthVisualization);
 	ImGui::SliderFloat("Fog Level", &fogLevel, 0.0f, 100.0f);
+	ImGui::End();
+
+	ImGui::Begin("World Hierarchy");
+	std::string ec = "Entity Count: " + std::to_string(hierarchy.size());
+	ImGui::Text(ec.c_str());
+
+	for (std::pair<const char*, Model*> entry : hierarchy) { 
+		if (ImGui::TreeNode(entry.first)) {
+			Model* entity = entry.second;
+			std::string dat = "Texture Count: " + std::to_string(entity->loadedTex.size());
+			ImGui::Text(dat.c_str());
+			ImGui::DragFloat3("Position", glm::value_ptr(pos));
+			ImGui::TreePop();
+		}
+	}
+
 	ImGui::End();
 
 	ImGui::Render();

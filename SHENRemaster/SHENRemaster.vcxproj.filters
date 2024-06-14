@@ -55,6 +55,12 @@
     <ClCompile Include="Model.cpp">
       <Filter>Engine\Core</Filter>
     </ClCompile>
+    <ClCompile Include="PostProcessManager.cpp">
+      <Filter>Engine\Core\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="SkyBoxManager.cpp">
+      <Filter>Engine\Core\World</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
@@ -77,6 +83,12 @@
     </Filter>
     <Filter Include="Engine\Core\Game">
       <UniqueIdentifier>{9a3f6501-004f-4a89-945f-c901878d32bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Core\Graphics">
+      <UniqueIdentifier>{dc729b17-2efb-4268-8f57-7f93860d0b36}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Core\World">
+      <UniqueIdentifier>{554cb266-2536-4d8b-bc20-1e76af3f5490}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -136,6 +148,12 @@
     </ClInclude>
     <ClInclude Include="Model.h">
       <Filter>Engine\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="PostProcessManager.h">
+      <Filter>Engine\Core\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyBoxManager.h">
+      <Filter>Engine\Core\World</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

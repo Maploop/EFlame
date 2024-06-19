@@ -1,50 +1,49 @@
 #include "SkyBoxManager.h"
 
-float skyboxVertices[] =
-{
-	//   Coordinates
-	-1.0f, -1.0f,  1.0f,//        7--------6
-	 1.0f, -1.0f,  1.0f,//       /|       /|
-	 1.0f, -1.0f, -1.0f,//      4--------5 |
-	-1.0f, -1.0f, -1.0f,//      | |      | |
-	-1.0f,  1.0f,  1.0f,//      | 3------|-2
-	 1.0f,  1.0f,  1.0f,//      |/       |/
-	 1.0f,  1.0f, -1.0f,//      0--------1
-	-1.0f,  1.0f, -1.0f
-};
-
-unsigned int skyboxIndices[] =
-{
-	// Right
-	1, 2, 6,
-	6, 5, 1,
-	// Left
-	0, 4, 7,
-	7, 3, 0,
-	// Top
-	4, 5, 6,
-	6, 7, 4,
-	// Bottom
-	0, 3, 2,
-	2, 1, 0,
-	// Back
-	0, 1, 5,
-	5, 4, 0,
-	// Front
-	3, 7, 6,
-	6, 2, 3
-};
-
 #include <stb/stb_image.h>
 
-SkyBoxManager::SkyBoxManager(const char* vertexShader, const char* fragmentShader, int widthS, int heightS, float fov, float near, float far, Camera camera) 
- : skyboxShader(vertexShader, fragmentShader),
-	widthS(widthS), heightS(heightS), fov(fov), near(near), far(far), camera(camera) {
+SkyBoxManager::SkyBoxManager(const char* vertexShader, const char* fragmentShader) 
+ : skyboxShader(vertexShader, fragmentShader) {
 	skyboxShader.Activate();
 	skyboxShader.SetInt("skybox", 0);
 }
 
 void SkyBoxManager::InitializeSelf() noexcept {
+	float skyboxVertices[] =
+	{
+		//   Coordinates
+		-1.0f, -1.0f,  1.0f,//        7--------6
+		 1.0f, -1.0f,  1.0f,//       /|       /|
+		 1.0f, -1.0f, -1.0f,//      4--------5 |
+		-1.0f, -1.0f, -1.0f,//      | |      | |
+		-1.0f,  1.0f,  1.0f,//      | 3------|-2
+		 1.0f,  1.0f,  1.0f,//      |/       |/
+		 1.0f,  1.0f, -1.0f,//      0--------1
+		-1.0f,  1.0f, -1.0f
+	};
+
+	unsigned int skyboxIndices[] =
+	{
+		// Right
+		1, 2, 6,
+		6, 5, 1,
+		// Left
+		0, 4, 7,
+		7, 3, 0,
+		// Top
+		4, 5, 6,
+		6, 7, 4,
+		// Bottom
+		0, 3, 2,
+		2, 1, 0,
+		// Back
+		0, 1, 5,
+		5, 4, 0,
+		// Front
+		3, 7, 6,
+		6, 2, 3
+	};
+
 	// Create VAO, VBO, and EBO for the skybox
 	glGenVertexArrays(1, &skyboxVAO);
 	glGenBuffers(1, &skyboxVBO);
@@ -109,13 +108,14 @@ void SkyBoxManager::InitializeSelf() noexcept {
 	}
 }
 
-void SkyBoxManager::Render() noexcept {
+void SkyBoxManager::Render(Camera& camera, int width, int height, float fov, float near, float far) noexcept {
 	glDepthFunc(GL_LEQUAL);
+
 	skyboxShader.Activate();
 	glm::mat4 view = glm::mat4(1.0);
 	glm::mat4 projection = glm::mat4(1.0);
 	view = glm::mat4(glm::mat3(glm::lookAt(camera.position, camera.position + camera.orientation, camera.up)));
-	projection = glm::perspective(glm::radians(fov), (float)widthS / heightS, near, far);
+	projection = glm::perspective(glm::radians(fov), (float) width / height, near, far);
 	skyboxShader.SetMat4("view", view);
 	skyboxShader.SetMat4("projection", projection);
 

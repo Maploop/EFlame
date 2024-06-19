@@ -5,22 +5,15 @@
 
 class SkyBoxManager {
 public:
-	SkyBoxManager(const char* vertexShader, const char* fragmentShader, int width, int height, float fov, float near, float far, Camera camera);
+	SkyBoxManager(const char* vertexShader, const char* fragmentShader);
 
 	void InitializeSelf() noexcept;
-	void Render() noexcept;
+	void Render(Camera& camera, int width, int height, float fov, float near, float far) noexcept;
 	void Free() noexcept;
 
 private:
 	unsigned int skyboxVAO, skyboxVBO, skyboxEBO;
 	unsigned int cubemapTexture;
-
-	int widthS;
-	int heightS;
-	float fov;
-	float near;
-	float far;
-	Camera camera;
 
 	Shader skyboxShader;
 };

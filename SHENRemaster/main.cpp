@@ -87,6 +87,9 @@ int main() {
 	SHINFO("(CALLBACK) StartupHandler > \"gladLoadGL\" -> OpenGL v%i.%i has been initialized.", OGL_MJV, OGL_MNV);
 
 	Shader coreProgram("./sh_res/sh_shader/Core.vs", "./sh_res/sh_shader/Core.fs");
+	Shader skyboxShader("./sh_res/sh_shader/Skybox.vs", "./sh_res/sh_shader/Skybox.fs");
+	skyboxShader.Activate();
+	skyboxShader.SetInt("skybox", 0);
 	
 	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
 	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
@@ -108,8 +111,6 @@ int main() {
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	glDepthFunc(GL_LESS);
 
-
-
 	// Post processing
 	SHINFO("PostProcessing > Initializing PostProcessManager...");
 	PostProcessManager ppManager("./sh_res/sh_shader/Framebuffer.vs", "./sh_res/sh_shader/Framebuffer.fs", SCR_WIDTH, SCR_HEIGHT);
@@ -121,9 +122,6 @@ int main() {
 	SHINFO("PostProcessing > PostProcessManager initialized successfully!");
 	// End post processing
 
-	SkyBoxManager skyboxManager("./sh_res/sh_shader/Skybox.vs", "./sh_res/sh_shader/Skybox.fs", SCR_WIDTH, SCR_HEIGHT, 70.0f, 0.1f, 100.0f, camera);
-	skyboxManager.InitializeSelf();
-
 	SHINFO("UIHandler > Initializing ImGui with OpenGL hook...");
 	ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
@@ -134,9 +132,19 @@ int main() {
 
 	Model sword("./sh_res/sh_3d/sword/scene.gltf");
 	Model tomb("./sh_res/sh_3d/tomb/scene.gltf");
+	Model statue("./sh_res/sh_3d/statue/scene.gltf");
+	Model ground("./sh_res/sh_3d/ground/scene.gltf");
+	Model grass("./sh_res/sh_3d/grass/scene.gltf");
 	hierarchy.insert({"Sword", &sword});
 	hierarchy.insert({"Tomb", &tomb});
+	hierarchy.insert({"Statue", &statue});
+	hierarchy.insert({"Grass", &grass});
+	hierarchy.insert({"Ground", &ground});
 
+	SHINFO("PostProcessing > Skybox shader is loading...");
+	SkyBoxManager skyboxManager("./sh_res/sh_shader/Skybox.vs", "./sh_res/sh_shader/Skybox.fs");
+	skyboxManager.InitializeSelf();
+	SHINFO("PostProcessing > Skybox shader is done loading!");
 	
 
 	while (!glfwWindowShouldClose(window)) {
@@ -152,6 +160,9 @@ int main() {
 
 		sword.Render(coreProgram, camera);
 		tomb.Render(coreProgram, camera);
+		statue.Render(coreProgram, camera);
+		//grass.Render(coreProgram, camera);
+		//ground.Render(coreProgram, camera);
 
 		coreProgram.Activate();
 		coreProgram.SetInt("directionalLightEnabled", gameUseDirLight);
@@ -160,7 +171,8 @@ int main() {
 		coreProgram.SetVec3("dirLightAngle", dirLightAngle);
 
 		// PP
-		skyboxManager.Render();
+		skyboxManager.Render(camera, SCR_WIDTH, SCR_HEIGHT, 70.0f, 0.1f, 100.0f);
+
 		ppManager.PostProcess();
 
 		imguiRenderpass();
@@ -176,7 +188,7 @@ int main() {
 
 	SHINFO("ProcessHandler > Shutting down SHEN...");
 	coreProgram.Free();
-	skyboxManager.Free();
+	skyboxShader.Free();
 	ppManager.Free();
 
 	glfwDestroyWindow(window);

@@ -69,6 +69,16 @@ void SkyBoxManager::InitializeSelf() noexcept {
 		"./sh_res/sh_cubemap/sh_skybox/back.jpg"
 	};
 
+	/*std::string facesCubemap[6] =
+	{
+		"./sh_res/sh_cubemap/sh_nightsky/right.png",
+		"./sh_res/sh_cubemap/sh_nightsky/left.png",
+		"./sh_res/sh_cubemap/sh_nightsky/top.png",
+		"./sh_res/sh_cubemap/sh_nightsky/bottom.png",
+		"./sh_res/sh_cubemap/sh_nightsky/front.png",
+		"./sh_res/sh_cubemap/sh_nightsky/back.png"
+	};*/
+
 	// Creates the cubemap texture object
 	glGenTextures(1, &cubemapTexture);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, cubemapTexture);

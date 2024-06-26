@@ -35,36 +35,66 @@ GLenum PostProcessManager::InitializeSelf() noexcept {
 	glGenFramebuffers(1, &FBO);
 	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 
+	// This framebuffer will be left alone for Anti Aliasing unfortunately.
 	glGenTextures(1, &framebufferTexture);
-	glBindTexture(GL_TEXTURE_2D, framebufferTexture);
+	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, framebufferTexture);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, 8, GL_RGB, sourceW, sourceH, GL_TRUE);
+	glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, framebufferTexture, 0);
+
+	glGenRenderbuffers(1, &RBO);
+	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+	glRenderbufferStorageMultisample(GL_RENDERBUFFER, 8, GL_DEPTH24_STENCIL8, sourceW, sourceH);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
+
+	auto fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+	if (fboStatus != GL_FRAMEBUFFER_COMPLETE)
+		return fboStatus;
+
+	// This next one will be used for Post Processing :D
+	glGenFramebuffers(1, &postProcessingFBO);
+	glBindFramebuffer(GL_FRAMEBUFFER, postProcessingFBO);
+
+	glGenTextures(1, &postProcessingTexture);
+	glBindTexture(GL_TEXTURE_2D, postProcessingTexture);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, sourceW, sourceH, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, framebufferTexture, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D_MULTISAMPLE, postProcessingTexture, 0);
 
-	glGenRenderbuffers(1, &RBO);
-	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, sourceW, sourceH);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
+	fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
-	auto fboStatus = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	return fboStatus;
 }
 
+/*
+	Self explainatory, must be run before everything even frame clearing
+*/
 void PostProcessManager::PreProcess() noexcept {
+	// This is for the Multisampling FBO
 	glBindFramebuffer(GL_FRAMEBUFFER, FBO);
 }
 
+/*
+	Keep in mind the method PostProcess() must be called after the frame render is done
+*/
 void PostProcessManager::PostProcess() noexcept {
 	// Bind the default framebuffer
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, FBO);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, postProcessingFBO);
+	glBlitFramebuffer(0, 0, sourceW, sourceH, 0, 0, sourceW, sourceH, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	// Draw the framebuffer rectangle
 	framebufferShader.Activate();
 	glBindVertexArray(rectVAO);
 	glDisable(GL_DEPTH_TEST); // prevents framebuffer rectangle from being discarded
-	glBindTexture(GL_TEXTURE_2D, framebufferTexture);
+	glBindTexture(GL_TEXTURE_2D, postProcessingTexture);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 

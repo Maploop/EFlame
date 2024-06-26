@@ -16,6 +16,8 @@ private:
 	unsigned int rectVAO, rectVBO;
 	unsigned int FBO;
 	unsigned int framebufferTexture;
+	unsigned int postProcessingFBO;
+	unsigned int postProcessingTexture;
 	unsigned int RBO;
 
 	int sourceW, sourceH;

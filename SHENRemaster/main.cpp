@@ -26,7 +26,7 @@ const int OGL_MJV = 3;
 const int OGL_MNV = 3;
 const char* APP_VERSION = "1.0-PRI";
 
-const int SCR_WIDTH = 1280, SCR_HEIGHT = 720;
+const int SCR_WIDTH = 1920, SCR_HEIGHT = 1080;
 
 void imguiRenderpass();
 void window_resize_callback(GLFWwindow* window, int width, int height);
@@ -38,6 +38,8 @@ bool gameUseDirLight = true;
 bool depthVisualization = true;
 float fogLevel = 70.0;
 glm::vec3 dirLightAngle = glm::vec3(1.0, 1.0, 0.0);
+bool antiAlisaing = true;
+int antiAliasingSampleCount = 8;
 
 Camera camera(SCR_WIDTH, SCR_HEIGHT, glm::vec3(0.0f, 0.0f, 2.0f));
 GLFWwindow* window;
@@ -63,6 +65,7 @@ int main() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, OGL_MJV);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, OGL_MNV);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_SAMPLES, 8);
 
 	// TODO -- Fix [window] being NULL apparently?
 	window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "EFlame v1.0", NULL, NULL);
@@ -104,6 +107,7 @@ int main() {
 
 
 	//glEnable(GL_DEPTH_TEST);
+	glEnable(GL_MULTISAMPLE);
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
 	glFrontFace(GL_CCW);
@@ -146,7 +150,7 @@ int main() {
 	skyboxManager.InitializeSelf();
 	SHINFO("PostProcessing > Skybox shader is done loading!");
 	
-
+	glfwMaximizeWindow(window);
 	while (!glfwWindowShouldClose(window)) {
 		// PreP
 		ppManager.PreProcess();
@@ -213,6 +217,11 @@ void imguiRenderpass() {
 	if (ImGui::Button("Exit")) {
 		glfwSetWindowShouldClose(window, true);
 	}
+	ImGui::End();
+
+	ImGui::Begin("Graphics Options");
+	ImGui::Checkbox("Anti-Aliasing", &antiAlisaing);
+	ImGui::SliderInt("Anti-Aliasing Samples", &antiAliasingSampleCount, 2, 16);
 	ImGui::End();
 
 	ImGui::Begin("World Options");

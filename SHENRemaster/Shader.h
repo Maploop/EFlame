@@ -16,6 +16,7 @@ private:
 
 public:
 	Shader(const char* vertexPath, const char* fragmentPath);
+	Shader() = default;
 
 	void Activate();
 	void Free();

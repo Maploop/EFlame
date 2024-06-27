@@ -34,13 +34,18 @@ void window_resize_callback(GLFWwindow* window, int width, int height);
 static std::map<const char*, Model*> hierarchy;
 
 Game game = Game();
-bool gameUseDirLight = true;
-bool depthVisualization = true;
-float fogLevel = 70.0;
-glm::vec3 dirLightAngle = glm::vec3(1.0, 1.0, 0.0);
-bool antiAlisaing = true;
-int antiAliasingSampleCount = 8;
 
+struct GraphicsComponents {
+	PostProcessManager* postProcessing = nullptr;
+	SkyBoxManager* skyBox = nullptr;
+
+	bool directionalLightEnabled = true;
+	bool depthVisualizationEnabled = true;
+	float fogLevel = 70.0;
+	glm::vec3 directinaLightAngle = glm::vec3(1.0, 1.0, 0.0);
+};
+
+GraphicsComponents graphicsComponents;
 Camera camera(SCR_WIDTH, SCR_HEIGHT, glm::vec3(0.0f, 0.0f, 2.0f));
 GLFWwindow* window;
 
@@ -117,9 +122,10 @@ int main() {
 
 	// Post processing
 	SHINFO("PostProcessing > Initializing PostProcessManager...");
-	PostProcessManager ppManager("./sh_res/sh_shader/Framebuffer.vs", "./sh_res/sh_shader/Framebuffer.fs", SCR_WIDTH, SCR_HEIGHT);
-
-	auto fboStatus = ppManager.InitializeSelf();
+	PostProcessManager temp1 = PostProcessManager("./sh_res/sh_shader/Framebuffer.vs", "./sh_res/sh_shader/Framebuffer.fs", SCR_WIDTH, SCR_HEIGHT);
+	graphicsComponents.postProcessing = &temp1;
+	auto fboStatus = graphicsComponents.postProcessing->InitializeSelf();
+	SHDEBUG("nick gfa");
 	if (fboStatus != GL_FRAMEBUFFER_COMPLETE)
 		SHERROR("PostProcessing > Framebuffer error:: %s", fboStatus);
 	
@@ -146,14 +152,15 @@ int main() {
 	hierarchy.insert({"Ground", &ground});
 
 	SHINFO("PostProcessing > Skybox shader is loading...");
-	SkyBoxManager skyboxManager("./sh_res/sh_shader/Skybox.vs", "./sh_res/sh_shader/Skybox.fs");
-	skyboxManager.InitializeSelf();
+	SkyBoxManager temp = SkyBoxManager("./sh_res/sh_shader/Skybox.vs", "./sh_res/sh_shader/Skybox.fs");
+	graphicsComponents.skyBox = &temp;
+	graphicsComponents.skyBox->InitializeSelf();
 	SHINFO("PostProcessing > Skybox shader is done loading!");
 	
-	glfwMaximizeWindow(window);
+	// glfwMaximizeWindow(window);
 	while (!glfwWindowShouldClose(window)) {
 		// PreP
-		ppManager.PreProcess();
+		graphicsComponents.postProcessing->PreProcess();
 
 		glClearColor(0.85f, 0.85f, 0.90f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -169,15 +176,15 @@ int main() {
 		//ground.Render(coreProgram, camera);
 
 		coreProgram.Activate();
-		coreProgram.SetInt("directionalLightEnabled", gameUseDirLight);
-		coreProgram.SetInt("depthVisual", depthVisualization);
-		coreProgram.SetFloat("fogLevel", 100.0f - fogLevel);
-		coreProgram.SetVec3("dirLightAngle", dirLightAngle);
+		coreProgram.SetInt("directionalLightEnabled", graphicsComponents.directionalLightEnabled);
+		coreProgram.SetInt("depthVisual", graphicsComponents.depthVisualizationEnabled);
+		coreProgram.SetFloat("fogLevel", 100.0f - graphicsComponents.fogLevel);
+		coreProgram.SetVec3("dirLightAngle", graphicsComponents.directinaLightAngle);
 
 		// PP
-		skyboxManager.Render(camera, SCR_WIDTH, SCR_HEIGHT, 70.0f, 0.1f, 100.0f);
+		graphicsComponents.skyBox->Render(camera, SCR_WIDTH, SCR_HEIGHT, 70.0f, 0.1f, 100.0f);
 
-		ppManager.PostProcess();
+		graphicsComponents.postProcessing->PostProcess();
 
 		imguiRenderpass();
 
@@ -193,7 +200,8 @@ int main() {
 	SHINFO("ProcessHandler > Shutting down SHEN...");
 	coreProgram.Free();
 	skyboxShader.Free();
-	ppManager.Free();
+	graphicsComponents.skyBox->Free();
+	graphicsComponents.postProcessing->Free();
 
 	glfwDestroyWindow(window);
 	glfwTerminate();
@@ -220,16 +228,15 @@ void imguiRenderpass() {
 	ImGui::End();
 
 	ImGui::Begin("Graphics Options");
-	ImGui::Checkbox("Anti-Aliasing", &antiAlisaing);
-	ImGui::SliderInt("Anti-Aliasing Samples", &antiAliasingSampleCount, 2, 16);
+	ImGui::SliderInt("Anti-Aliasing Samples", &graphicsComponents.postProcessing->antiAliasingSampleCount, 2, 16);
 	ImGui::End();
 
 	ImGui::Begin("World Options");
-	ImGui::Checkbox("Use Directional Light", &gameUseDirLight);
-	ImGui::DragFloat3("DL Angle", glm::value_ptr(dirLightAngle), 0.0, 2.0);
+	ImGui::Checkbox("Use Directional Light", &graphicsComponents.directionalLightEnabled);
+	ImGui::DragFloat3("DL Angle", glm::value_ptr(graphicsComponents.directinaLightAngle), 0.0, 2.0);
 	ImGui::Text("Render");
-	ImGui::Checkbox("Placebo Fog", &depthVisualization);
-	ImGui::SliderFloat("Fog Level", &fogLevel, 0.0f, 100.0f);
+	ImGui::Checkbox("Placebo Fog", &graphicsComponents.depthVisualizationEnabled);
+	ImGui::SliderFloat("Fog Level", &graphicsComponents.fogLevel, 0.0f, 100.0f);
 	ImGui::End();
 
 	ImGui::Begin("World Hierarchy");

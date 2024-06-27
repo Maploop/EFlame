@@ -5,6 +5,7 @@
 class PostProcessManager {
 public:
 	PostProcessManager(const char* vertexShader, const char* fragmentShader, int sourceW, int sourceH);
+	PostProcessManager() = default;
 
 	GLenum InitializeSelf() noexcept;
 
@@ -12,6 +13,9 @@ public:
 	void PostProcess() noexcept;
 
 	void Free() noexcept;
+
+	// Var
+	int antiAliasingSampleCount = 8;
 private:
 	unsigned int rectVAO, rectVBO;
 	unsigned int FBO;

@@ -155,5 +155,8 @@
     <ClInclude Include="SkyBoxManager.h">
       <Filter>Engine\Core\World</Filter>
     </ClInclude>
+    <ClInclude Include="GraphicsComponents.h">
+      <Filter>Engine\Core\Graphics</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

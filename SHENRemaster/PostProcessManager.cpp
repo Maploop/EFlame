@@ -1,6 +1,7 @@
 #include "PostProcessManager.h"
 
 #include "logger.hpp"
+#include "GraphicsComponents.h"
 
 float rectangleVertices[] =
 {
@@ -40,7 +41,7 @@ GLenum PostProcessManager::InitializeSelf() noexcept {
 	// This framebuffer will be left alone for Anti Aliasing unfortunately.
 	glGenTextures(1, &framebufferTexture);
 	glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, framebufferTexture);
-	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, antiAliasingSampleCount, GL_RGB, sourceW, sourceH, GL_TRUE);
+	glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, antiAliasingSampleCount, GL_RGB16F, sourceW, sourceH, GL_TRUE);
 	glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE); // Prevents edge bleeding
@@ -59,7 +60,7 @@ GLenum PostProcessManager::InitializeSelf() noexcept {
 
 	glGenTextures(1, &postProcessingTexture);
 	glBindTexture(GL_TEXTURE_2D, postProcessingTexture);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, sourceW, sourceH, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB16F, sourceW, sourceH, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -81,7 +82,7 @@ void PostProcessManager::PreProcess() noexcept {
 /*
 	Keep in mind the method PostProcess() must be called after the frame render is done
 */
-void PostProcessManager::PostProcess() noexcept {
+void PostProcessManager::PostProcess(GraphicsComponents renderComponents) noexcept {
 	// Bind the default framebuffer
 	glBindFramebuffer(GL_READ_FRAMEBUFFER, FBO);
 	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, postProcessingFBO);
@@ -90,6 +91,7 @@ void PostProcessManager::PostProcess() noexcept {
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	// Draw the framebuffer rectangle
 	framebufferShader.Activate();
+	framebufferShader.SetFloat("gamma", renderComponents.gamma);
 	glBindVertexArray(rectVAO);
 	glDisable(GL_DEPTH_TEST); // prevents framebuffer rectangle from being discarded
 	glBindTexture(GL_TEXTURE_2D, postProcessingTexture);

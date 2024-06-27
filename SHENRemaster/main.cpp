@@ -19,14 +19,13 @@
 #include "logger.hpp"
 #include "Game.h"
 #include "Model.h"
-#include "SkyBoxManager.h"
-#include "PostProcessManager.h"
+#include "GraphicsComponents.h"
 
 const int OGL_MJV = 3;
 const int OGL_MNV = 3;
 const char* APP_VERSION = "1.0-PRI";
 
-const int SCR_WIDTH = 1920, SCR_HEIGHT = 1080;
+int SCR_WIDTH = 1920, SCR_HEIGHT = 1080;
 
 void imguiRenderpass();
 void window_resize_callback(GLFWwindow* window, int width, int height);
@@ -35,15 +34,7 @@ static std::map<const char*, Model*> hierarchy;
 
 Game game = Game();
 
-struct GraphicsComponents {
-	PostProcessManager* postProcessing = nullptr;
-	SkyBoxManager* skyBox = nullptr;
 
-	bool directionalLightEnabled = true;
-	bool depthVisualizationEnabled = true;
-	float fogLevel = 70.0;
-	glm::vec3 directinaLightAngle = glm::vec3(1.0, 1.0, 0.0);
-};
 
 GraphicsComponents graphicsComponents;
 Camera camera(SCR_WIDTH, SCR_HEIGHT, glm::vec3(0.0f, 0.0f, 2.0f));
@@ -96,6 +87,7 @@ int main() {
 
 	Shader coreProgram("./sh_res/sh_shader/Core.vs", "./sh_res/sh_shader/Core.fs");
 	Shader skyboxShader("./sh_res/sh_shader/Skybox.vs", "./sh_res/sh_shader/Skybox.fs");
+	Shader shadowMapShader("./sh_res/sh_shader/ShadowMap.vs", "./sh_res/sh_shader/ShadowMap.fs");
 	skyboxShader.Activate();
 	skyboxShader.SetInt("skybox", 0);
 	
@@ -116,6 +108,7 @@ int main() {
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_FRONT);
 	glFrontFace(GL_CCW);
+	// glEnable(GL_FRAMEBUFFER_SRGB);
 
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 	glDepthFunc(GL_LESS);
@@ -125,7 +118,6 @@ int main() {
 	PostProcessManager temp1 = PostProcessManager("./sh_res/sh_shader/Framebuffer.vs", "./sh_res/sh_shader/Framebuffer.fs", SCR_WIDTH, SCR_HEIGHT);
 	graphicsComponents.postProcessing = &temp1;
 	auto fboStatus = graphicsComponents.postProcessing->InitializeSelf();
-	SHDEBUG("nick gfa");
 	if (fboStatus != GL_FRAMEBUFFER_COMPLETE)
 		SHERROR("PostProcessing > Framebuffer error:: %s", fboStatus);
 	
@@ -157,9 +149,51 @@ int main() {
 	graphicsComponents.skyBox->InitializeSelf();
 	SHINFO("PostProcessing > Skybox shader is done loading!");
 	
+	// Framebuffer for Shadow Map
+	unsigned int shadowMapFBO;
+	glGenFramebuffers(1, &shadowMapFBO);
+
+	// Texture for Shadow Map FBO
+	unsigned int shadowMapWidth = 2048, shadowMapHeight = 2048;
+	unsigned int shadowMap;
+	glGenTextures(1, &shadowMap);
+	glBindTexture(GL_TEXTURE_2D, shadowMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadowMapWidth, shadowMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	// Prevents darkness outside the frustrum
+	float clampColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, clampColor);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMap, 0);
+	// Needed since we don't touch the color buffer
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	glm::mat4 orthgonalProjection = glm::ortho(-35.0f, 35.0f, -35.0f, 35.0f, 0.1f, 75.0f);
+	glm::mat4 lightView = glm::lookAt(20.0f * lightPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	glm::mat4 lightProjection = orthgonalProjection * lightView;
+
+	shadowMapShader.Activate();
+	shadowMapShader.SetMat4("lightProjection", lightProjection);
+
 	// glfwMaximizeWindow(window);
 	while (!glfwWindowShouldClose(window)) {
 		// PreP
+		glEnable(GL_DEPTH_TEST);
+		glViewport(0, 0, shadowMapWidth, shadowMapHeight);
+		glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+		glClear(GL_DEPTH_BUFFER_BIT);
+		sword.Render(shadowMapShader, camera);
+		tomb.Render(shadowMapShader, camera);
+		statue.Render(coreProgram, camera);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
 		graphicsComponents.postProcessing->PreProcess();
 
 		glClearColor(0.85f, 0.85f, 0.90f, 1.0f);
@@ -168,6 +202,12 @@ int main() {
 		camera.UpdateMatrix(70.0f, 0.1f, 100.0f);
 
 		glEnable(GL_DEPTH_TEST);
+
+		coreProgram.Activate();
+		coreProgram.SetMat4("lightProjection", lightProjection);
+		glActiveTexture(GL_TEXTURE0 + 2);
+		glBindTexture(GL_TEXTURE_2D, shadowMap);
+		coreProgram.SetInt("shadowMap", 2);
 
 		sword.Render(coreProgram, camera);
 		tomb.Render(coreProgram, camera);
@@ -184,7 +224,7 @@ int main() {
 		// PP
 		graphicsComponents.skyBox->Render(camera, SCR_WIDTH, SCR_HEIGHT, 70.0f, 0.1f, 100.0f);
 
-		graphicsComponents.postProcessing->PostProcess();
+		graphicsComponents.postProcessing->PostProcess(graphicsComponents);
 
 		imguiRenderpass();
 
@@ -229,6 +269,13 @@ void imguiRenderpass() {
 
 	ImGui::Begin("Graphics Options");
 	ImGui::SliderInt("Anti-Aliasing Samples", &graphicsComponents.postProcessing->antiAliasingSampleCount, 2, 16);
+	ImGui::Checkbox("Blinn-Phong", &graphicsComponents.phongLightingEnabled);
+	ImGui::SliderFloat("Gamma", &graphicsComponents.gamma, 1.0, 5.0);
+	ImGui::SameLine();
+	if (ImGui::Button("Reset")) {
+		graphicsComponents.gamma = 2.2f;
+		SHINFO("PostProcessHandler > Gamma reset to 2.2f");
+	}
 	ImGui::End();
 
 	ImGui::Begin("World Options");
@@ -261,5 +308,7 @@ void imguiRenderpass() {
 
 void window_resize_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
+	SCR_WIDTH = width;
+	SCR_HEIGHT = height;
 	SHINFO("StateHandler > Window resize commencing...");
 }

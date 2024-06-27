@@ -2,6 +2,7 @@
 
 #include "Shader.h"
 
+struct GraphicsComponents;
 class PostProcessManager {
 public:
 	PostProcessManager(const char* vertexShader, const char* fragmentShader, int sourceW, int sourceH);
@@ -10,7 +11,7 @@ public:
 	GLenum InitializeSelf() noexcept;
 
 	void PreProcess() noexcept;
-	void PostProcess() noexcept;
+	void PostProcess(GraphicsComponents renderComponents) noexcept;
 
 	void Free() noexcept;
 

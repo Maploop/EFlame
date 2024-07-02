@@ -11,6 +11,18 @@ public:
 
 	void Render(Shader& shader, Camera& camera);
 
+	void SetPosition(glm::vec3 pos);
+	void SetRotation(glm::vec3 rot);
+	void Scale(glm::vec3 scale);
+	void Scale(float scale);
+
+	// To be used in map making in the future
+	void SetStatic(bool cached);
+
+	glm::vec3 position = glm::vec3(0.0);
+	glm::vec3 rotation;
+	glm::vec3 scale = glm::vec3(1.0);
+
 	std::vector<std::string> loadedTexName;
 	std::vector<Texture> loadedTex;
 private:
@@ -49,5 +61,8 @@ private:
 	std::vector<glm::vec4> GroupFloatsVec4(std::vector<float> floatVec);
 
 	std::string GetFileContents(const char* pathName) const noexcept;
+
+	// Cache related
+	bool constantlyUpdated = true;
 };
 

@@ -1,0 +1,24 @@
+# ninja log v5
+16	2517	7416146068093445	CMakeFiles/SHENRemaster.dir/Libraries/include/imgui/imgui.cpp.obj	9e14bb25d1ffd8a8
+21	712	7416146050046673	CMakeFiles/SHENRemaster.dir/Libraries/include/imgui/imgui_impl_opengl3.cpp.obj	65198ac06ee771fd
+7	885	7416146051782335	CMakeFiles/SHENRemaster.dir/Libraries/include/imgui/imgui_demo.cpp.obj	9711e674069001ac
+936	1614	7416146059091649	CMakeFiles/SHENRemaster.dir/SHENRemaster/SkyBoxManager.cpp.obj	ca1ff9becb667c88
+713	1812	7416146061042057	CMakeFiles/SHENRemaster.dir/Libraries/include/imgui/imgui_tables.cpp.obj	823a10521e431d13
+209	1996	7416146062890075	CMakeFiles/SHENRemaster.dir/Libraries/include/imgui/imgui_widgets.cpp.obj	fb390badb23f10ac
+26	1138	7416146054344946	CMakeFiles/SHENRemaster.dir/Libraries/include/imgui/imgui_impl_glfw.cpp.obj	49f2a01e34d1699a
+3	3415	7416146077028064	CMakeFiles/SHENRemaster.dir/Libraries/include/glm/detail/glm.cpp.obj	e79692113a0e7167
+32	706	7416146050026624	CMakeFiles/SHENRemaster.dir/SHENRemaster/Camera.cpp.obj	59c245c5d6336661
+11	1574	7416146058671904	CMakeFiles/SHENRemaster.dir/Libraries/include/imgui/imgui_draw.cpp.obj	879b07c5873509d2
+43	208	7416146045050426	CMakeFiles/SHENRemaster.dir/SHENRemaster/EBO.cpp.obj	5180420e49134147
+706	1048	7416146053444557	CMakeFiles/SHENRemaster.dir/SHENRemaster/CleriaGame.cpp.obj	70bbc5d63b3985b7
+885	1504	7416146057999687	CMakeFiles/SHENRemaster.dir/SHENRemaster/Shader.cpp.obj	2956b996821b7297
+1614	4675	7416146089596285	CMakeFiles/SHENRemaster.dir/SHENRemaster/Model.cpp.obj	cef7078e97838b9c
+1813	2661	7416146069559125	CMakeFiles/SHENRemaster.dir/SHENRemaster/Mesh.cpp.obj	ff4c3b932d413e54
+37	936	7416146052314019	CMakeFiles/SHENRemaster.dir/SHENRemaster/glad.c.obj	526b3d2180e0ab9d
+1997	2349	7416146066461561	CMakeFiles/SHENRemaster.dir/SHENRemaster/VBO.cpp.obj	7ccd01f1e0716b0e
+2349	2683	7416146069809469	CMakeFiles/SHENRemaster.dir/SHENRemaster/VAO.cpp.obj	d7bf4fe305451464
+1504	2658	7416146069529063	CMakeFiles/SHENRemaster.dir/SHENRemaster/Texture.cpp.obj	f015fa36cf34008f
+1048	2653	7416146069493906	CMakeFiles/SHENRemaster.dir/SHENRemaster/PostProcessManager.cpp.obj	3f28046a30d2d2cd
+1574	3350	7416146076435582	CMakeFiles/SHENRemaster.dir/SHENRemaster/main.cpp.obj	79575f40379df10
+1138	2976	7416146072725906	CMakeFiles/SHENRemaster.dir/SHENRemaster/ShadowMapHandler.cpp.obj	c43542811419a79
+2	293	7416152275415798	build.ninja	e0600471b393bd59

@@ -1,0 +1,3 @@
+C:/STUFF/DEV/_Cpp/SHENRemaster/cmake-build-debug/CMakeFiles/SHENRemaster.dir
+C:/STUFF/DEV/_Cpp/SHENRemaster/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/STUFF/DEV/_Cpp/SHENRemaster/cmake-build-debug/CMakeFiles/rebuild_cache.dir

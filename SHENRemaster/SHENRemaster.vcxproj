@@ -163,6 +163,7 @@
     <ClCompile Include="Model.cpp" />
     <ClCompile Include="PostProcessManager.cpp" />
     <ClCompile Include="Shader.cpp" />
+    <ClCompile Include="ShadowMapHandler.cpp" />
     <ClCompile Include="SkyBoxManager.cpp" />
     <ClCompile Include="Texture.cpp" />
     <ClCompile Include="VAO.cpp" />
@@ -187,6 +188,7 @@
     <ClInclude Include="Model.h" />
     <ClInclude Include="PostProcessManager.h" />
     <ClInclude Include="Shader.h" />
+    <ClInclude Include="ShadowMapHandler.h" />
     <ClInclude Include="SkyBoxManager.h" />
     <ClInclude Include="Texture.h" />
     <ClInclude Include="VAO.h" />

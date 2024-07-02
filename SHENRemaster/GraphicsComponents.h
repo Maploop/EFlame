@@ -2,10 +2,12 @@
 
 #include "PostProcessManager.h"
 #include "SkyBoxManager.h"
+#include "ShadowMapHandler.h"
 
 struct GraphicsComponents {
 	PostProcessManager* postProcessing = nullptr;
 	SkyBoxManager* skyBox = nullptr;
+	ShadowMapHandler* shadowMapHandler = nullptr;
 
 	bool directionalLightEnabled = true;
 	bool depthVisualizationEnabled = true;

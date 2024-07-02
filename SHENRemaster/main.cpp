@@ -137,11 +137,16 @@ int main() {
 	Model statue("./sh_res/sh_3d/statue/scene.gltf");
 	Model ground("./sh_res/sh_3d/ground/scene.gltf");
 	Model grass("./sh_res/sh_3d/grass/scene.gltf");
+	Model cube1("./sh_res/sh_3d/cube/cube.gltf");
 	hierarchy.insert({"Sword", &sword});
 	hierarchy.insert({"Tomb", &tomb});
 	hierarchy.insert({"Statue", &statue});
 	hierarchy.insert({"Grass", &grass});
 	hierarchy.insert({"Ground", &ground});
+	hierarchy.insert({"Cube #1", &cube1});
+
+	cube1.SetPosition(glm::vec3(0, -30, 0));
+	cube1.Scale(glm::vec3(30, 0.5, 30));
 
 	SHINFO("PostProcessing > Skybox shader is loading...");
 	SkyBoxManager temp = SkyBoxManager("./sh_res/sh_shader/Skybox.vs", "./sh_res/sh_shader/Skybox.fs");
@@ -149,51 +154,23 @@ int main() {
 	graphicsComponents.skyBox->InitializeSelf();
 	SHINFO("PostProcessing > Skybox shader is done loading!");
 	
-	// Framebuffer for Shadow Map
-	unsigned int shadowMapFBO;
-	glGenFramebuffers(1, &shadowMapFBO);
-
-	// Texture for Shadow Map FBO
-	unsigned int shadowMapWidth = 2048, shadowMapHeight = 2048;
-	unsigned int shadowMap;
-	glGenTextures(1, &shadowMap);
-	glBindTexture(GL_TEXTURE_2D, shadowMap);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadowMapWidth, shadowMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	// Prevents darkness outside the frustrum
-	float clampColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
-	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, clampColor);
-
-	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMap, 0);
-	// Needed since we don't touch the color buffer
-	glDrawBuffer(GL_NONE);
-	glReadBuffer(GL_NONE);
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	glm::mat4 orthgonalProjection = glm::ortho(-35.0f, 35.0f, -35.0f, 35.0f, 0.1f, 75.0f);
-	glm::mat4 lightView = glm::lookAt(20.0f * lightPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	glm::mat4 lightProjection = orthgonalProjection * lightView;
-
-	shadowMapShader.Activate();
-	shadowMapShader.SetMat4("lightProjection", lightProjection);
+	SHINFO("PostProcessing > Loading ShadowMapHandler...");
+	ShadowMapHandler temp2("./sh_res/sh_shader/ShadowMap.vs", "./sh_res/sh_shader/ShadowMap.fs");
+	graphicsComponents.shadowMapHandler = &temp2;
+	graphicsComponents.shadowMapHandler->InitializeSelf(lightPos);
+	SHINFO("PostProcessing > ShadowMapHandler has been initialized successfully.");
 
 	// glfwMaximizeWindow(window);
 	while (!glfwWindowShouldClose(window)) {
 		// PreP
-		glEnable(GL_DEPTH_TEST);
-		glViewport(0, 0, shadowMapWidth, shadowMapHeight);
-		glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
-		glClear(GL_DEPTH_BUFFER_BIT);
-		sword.Render(shadowMapShader, camera);
-		tomb.Render(shadowMapShader, camera);
-		statue.Render(coreProgram, camera);
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		graphicsComponents.shadowMapHandler->PreRender(graphicsComponents);
+		graphicsComponents.shadowMapHandler->Render(hierarchy, camera);
 
+		// Switch our viewport back to the one we actually need
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		glViewport(0, 0, SCR_WIDTH, SCR_HEIGHT);
+
+		// Post Processing 
 		graphicsComponents.postProcessing->PreProcess();
 
 		glClearColor(0.85f, 0.85f, 0.90f, 1.0f);
@@ -203,15 +180,17 @@ int main() {
 
 		glEnable(GL_DEPTH_TEST);
 
+		// Set the shadowmap properties into the main shader for now
 		coreProgram.Activate();
-		coreProgram.SetMat4("lightProjection", lightProjection);
+		coreProgram.SetMat4("lightProjection", graphicsComponents.shadowMapHandler->lightProjection);
 		glActiveTexture(GL_TEXTURE0 + 2);
-		glBindTexture(GL_TEXTURE_2D, shadowMap);
+		glBindTexture(GL_TEXTURE_2D, graphicsComponents.shadowMapHandler->shadowMap);
 		coreProgram.SetInt("shadowMap", 2);
 
 		sword.Render(coreProgram, camera);
 		tomb.Render(coreProgram, camera);
 		statue.Render(coreProgram, camera);
+		cube1.Render(coreProgram, camera);
 		//grass.Render(coreProgram, camera);
 		//ground.Render(coreProgram, camera);
 
@@ -295,7 +274,8 @@ void imguiRenderpass() {
 			Model* entity = entry.second;
 			std::string dat = "Texture Count: " + std::to_string(entity->loadedTex.size());
 			ImGui::Text(dat.c_str());
-			ImGui::DragFloat3("Position", glm::value_ptr(pos));
+			ImGui::DragFloat3("Position", glm::value_ptr(entity->position), 0.1);
+			ImGui::DragFloat3("Scale", glm::value_ptr(entity->scale), 0.1);
 			ImGui::TreePop();
 		}
 	}

@@ -4,6 +4,7 @@
 #include <stdarg.h>
 #include <iostream>
 #include <string>
+#include <cstring>
 
 #define YES 1
 #define NO 0

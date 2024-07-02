@@ -2,6 +2,8 @@
 
 #include "logger.hpp"
 
+#include "glm/gtc/matrix_transform.hpp"
+
 Model::Model(const char* file) {
 	SHINFO("ModelHandler > Loading model \"%s\"...", file);
 	// Make a JSON object
@@ -17,9 +19,57 @@ Model::Model(const char* file) {
 }
 
 void Model::Render(Shader& shader, Camera& camera) {
-	for (unsigned int i = 0; i < meshes.size(); i++) {
-		meshes[i].Render(shader, camera, matricesMeshes[i]);
+	if (constantlyUpdated) {
+		for (unsigned int i = 0; i < meshes.size(); i++) {
+			translationsMeshes[i] = position;
+		}
+
+		for (unsigned int i = 0; i < meshes.size(); i++) {
+			scalesMeshes[i] = scale;
+		}
 	}
+
+	for (unsigned int i = 0; i < meshes.size(); i++) {
+		meshes[i].Render(shader, camera, matricesMeshes[i], translationsMeshes[i], rotationsMeshes[i], scalesMeshes[i]);
+	}
+}
+
+void Model::SetPosition(glm::vec3 pos) {
+	if (!constantlyUpdated) {
+		for (unsigned int i = 0; i < meshes.size(); i++) {
+			translationsMeshes[i] += pos;
+		}
+	}
+	else {
+		this->position = pos;
+	}
+}
+
+// Doesn't work just yet
+void Model::SetRotation(glm::vec3 rot) {
+	for (unsigned int i = 0; i < meshes.size(); i++) {
+		// matricesMeshes[i] = glm::rotate();
+		rotationsMeshes[i] = rot;
+	}
+}
+
+void Model::Scale(glm::vec3 scale) {
+	if (!constantlyUpdated) {
+		for (unsigned int i = 0; i < meshes.size(); i++) {
+			scalesMeshes[i] = scale;
+		}
+	}
+	else {
+		this->scale = scale;
+	}
+}
+
+void Model::Scale(float scale) {
+	this->Scale(glm::vec3(scale));
+}
+
+void Model::SetStatic(bool cached) {
+	this->constantlyUpdated = !cached;
 }
 
 void Model::LoadMesh(unsigned int indMesh) {

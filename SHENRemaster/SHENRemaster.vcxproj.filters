@@ -61,6 +61,9 @@
     <ClCompile Include="SkyBoxManager.cpp">
       <Filter>Engine\Core\World</Filter>
     </ClCompile>
+    <ClCompile Include="ShadowMapHandler.cpp">
+      <Filter>Engine\Core\Graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
@@ -156,6 +159,9 @@
       <Filter>Engine\Core\World</Filter>
     </ClInclude>
     <ClInclude Include="GraphicsComponents.h">
+      <Filter>Engine\Core\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="ShadowMapHandler.h">
       <Filter>Engine\Core\Graphics</Filter>
     </ClInclude>
   </ItemGroup>

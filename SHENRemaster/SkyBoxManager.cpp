@@ -61,23 +61,23 @@ void SkyBoxManager::InitializeSelf() noexcept {
 
 	std::string facesCubemap[6] =
 	{
-		"./sh_res/sh_cubemap/sh_skybox/right.jpg",
-		"./sh_res/sh_cubemap/sh_skybox/left.jpg",
-		"./sh_res/sh_cubemap/sh_skybox/top.jpg",
-		"./sh_res/sh_cubemap/sh_skybox/bottom.jpg",
-		"./sh_res/sh_cubemap/sh_skybox/front.jpg",
-		"./sh_res/sh_cubemap/sh_skybox/back.jpg"
+		"./archive/sh_cubemap/sh_skybox/right.jpg",
+		"./archive/sh_cubemap/sh_skybox/left.jpg",
+		"./archive/sh_cubemap/sh_skybox/top.jpg",
+		"./archive/sh_cubemap/sh_skybox/bottom.jpg",
+		"./archive/sh_cubemap/sh_skybox/front.jpg",
+		"./archive/sh_cubemap/sh_skybox/back.jpg"
 	};
 
-	/*std::string facesCubemap[6] =
-	{
-		"./sh_res/sh_cubemap/sh_nightsky/right.png",
-		"./sh_res/sh_cubemap/sh_nightsky/left.png",
-		"./sh_res/sh_cubemap/sh_nightsky/top.png",
-		"./sh_res/sh_cubemap/sh_nightsky/bottom.png",
-		"./sh_res/sh_cubemap/sh_nightsky/front.png",
-		"./sh_res/sh_cubemap/sh_nightsky/back.png"
-	};*/
+	//std::string facesCubemap[6] =
+	//{
+	//	"./archive/sh_cubemap/sh_nightsky/right.png",
+	//	"./archive/sh_cubemap/sh_nightsky/left.png",
+	//	"./archive/sh_cubemap/sh_nightsky/top.png",
+	//	"./archive/sh_cubemap/sh_nightsky/bottom.png",
+	//	"./archive/sh_cubemap/sh_nightsky/front.png",
+	//	"./archive/sh_cubemap/sh_nightsky/back.png"
+	//};
 
 	// Creates the cubemap texture object
 	glGenTextures(1, &cubemapTexture);

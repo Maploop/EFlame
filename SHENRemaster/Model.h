@@ -8,6 +8,7 @@ using json = nlohmann::json;
 class Model {
 public:
 	Model(const char* file);
+	Model(const char* file, Texture* overrideDiff, Texture* overrideMet);
 
 	void Render(Shader& shader, Camera& camera);
 
@@ -16,8 +17,13 @@ public:
 	void Scale(glm::vec3 scale);
 	void Scale(float scale);
 
-	// To be used in map making in the future
+	// Level design function, should not be used in debug/testing scenarios
 	void SetStatic(bool cached);
+
+	void SetOverrideTextureDiffuse(Texture* tex);
+	void SetOverrideTextureMetallic(Texture* tex);
+	
+	void SetUseOverrideTextures(bool flag) { useOverrideTextures = flag;  };
 
 	glm::vec3 position = glm::vec3(0.0);
 	glm::vec3 rotation;
@@ -29,6 +35,10 @@ private:
 	const char* file;
 	std::vector<unsigned char> data;
 	json JSON;
+
+	bool useOverrideTextures = false;
+	Texture* overrideDiffuseTex;
+	Texture* overrideMetallicTex;
 
 	std::vector<Mesh> meshes;
 	std::vector<glm::vec3> translationsMeshes;

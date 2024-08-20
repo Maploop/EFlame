@@ -1,0 +1,18 @@
+{
+    "GraphicsComponents": {
+        "phongLightingEnabled": true
+    },
+    "PostProcessingComponents": {
+        "depthVisualizationEnabled": false,
+        "fogLevel": 20.170000076293945,
+        "gamma": 1.5089999437332153
+    },
+    "WorldComponents": {
+        "directionalLightEnabled": true,
+        "directionalLightPosition": {
+            "x": 500.0,
+            "y": 500.0,
+            "z": 500.0
+        }
+    }
+}

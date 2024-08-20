@@ -15,8 +15,9 @@
 #include "imgui/imgui_impl_glfw.h"
 
 #include <map>
+#include <string>
 
-#include "logger.hpp"
+#include "MainDataHandler.h"
 #include "Game.h"
 #include "Model.h"
 #include "GraphicsComponents.h"
@@ -27,6 +28,8 @@ const char* APP_VERSION = "1.0-PRI";
 
 int SCR_WIDTH = 1920, SCR_HEIGHT = 1080;
 
+void LoadBackendData();
+void SaveEngineConfig();
 void imguiRenderpass();
 void window_resize_callback(GLFWwindow* window, int width, int height);
 
@@ -40,6 +43,23 @@ GraphicsComponents graphicsComponents;
 Camera camera(SCR_WIDTH, SCR_HEIGHT, glm::vec3(0.0f, 0.0f, 2.0f));
 GLFWwindow* window;
 
+
+// Vertices for plane with texture
+std::vector<Vertex> vertices =
+{
+	Vertex{glm::vec3(-1.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec2(0.0f, 0.0f)},
+	Vertex{glm::vec3(-1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec2(0.0f, 1.0f)},
+	Vertex{glm::vec3(1.0f, 0.0f, -1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec2(1.0f, 1.0f)},
+	Vertex{glm::vec3(1.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec2(1.0f, 0.0f)}
+};
+
+// Indices for plane with texture
+std::vector<GLuint> indices =
+{
+	0, 1, 2,
+	0, 2, 3
+};
+
 int main() {
 	SHEMPTY("");
 	SHEMPTY("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
@@ -51,6 +71,8 @@ int main() {
 	SHEMPTY("Internal Logging Provided By EF Corp.");
 	SHEMPTY("If you are seeing this message it means you're looking at internal logs it illegally. Please don't.");
 	SHEMPTY("");
+
+	LoadBackendData();
 
 	SHINFO("StartupHandler > EFlame Engine version %s internal \"E\" starting...", APP_VERSION);
 	if (!glfwInit()) {
@@ -73,7 +95,7 @@ int main() {
 
 	// loading window TB icon
 	GLFWimage images[1];
-	images[0].pixels = stbi_load("./sh_res/sh_ico/SHEN.jpg", &images[0].width, &images[0].height, 0, 4); //rgba channels 
+	images[0].pixels = stbi_load("./archive/sh_ico/SHEN.jpg", &images[0].width, &images[0].height, 0, 4); //rgba channels 
 	glfwSetWindowIcon(window, 1, images);
 	stbi_image_free(images[0].pixels);
 
@@ -85,20 +107,19 @@ int main() {
 
 	SHINFO("(CALLBACK) StartupHandler > \"gladLoadGL\" -> OpenGL v%i.%i has been initialized.", OGL_MJV, OGL_MNV);
 
-	Shader coreProgram("./sh_res/sh_shader/Core.vs", "./sh_res/sh_shader/Core.fs");
-	Shader skyboxShader("./sh_res/sh_shader/Skybox.vs", "./sh_res/sh_shader/Skybox.fs");
-	Shader shadowMapShader("./sh_res/sh_shader/ShadowMap.vs", "./sh_res/sh_shader/ShadowMap.fs");
+	Shader coreProgram("./archive/sh_shader/Core.vs", "./archive/sh_shader/Core.fs");
+	Shader skyboxShader("./archive/sh_shader/Skybox.vs", "./archive/sh_shader/Skybox.fs");
+	Shader shadowMapShader("./archive/sh_shader/ShadowMap.vs", "./archive/sh_shader/ShadowMap.fs");
 	skyboxShader.Activate();
 	skyboxShader.SetInt("skybox", 0);
 	
 	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
-	glm::vec3 lightPos = glm::vec3(0.5f, 0.5f, 0.5f);
 	glm::mat4 lightModel = glm::mat4(1.0f);
-	lightModel = glm::translate(lightModel, lightPos);
+	lightModel = glm::translate(lightModel, graphicsComponents.directionalLightPosition);
 
 	coreProgram.Activate();
 	coreProgram.SetVec4("lightColor", lightColor);
-	coreProgram.SetVec3("lightPos", lightPos);
+	coreProgram.SetVec3("lightPos", graphicsComponents.directionalLightPosition);
 
 	
 
@@ -115,7 +136,7 @@ int main() {
 
 	// Post processing
 	SHINFO("PostProcessing > Initializing PostProcessManager...");
-	PostProcessManager temp1 = PostProcessManager("./sh_res/sh_shader/Framebuffer.vs", "./sh_res/sh_shader/Framebuffer.fs", SCR_WIDTH, SCR_HEIGHT);
+	PostProcessManager temp1 = PostProcessManager("./archive/sh_shader/Framebuffer.vs", "./archive/sh_shader/Framebuffer.fs", SCR_WIDTH, SCR_HEIGHT);
 	graphicsComponents.postProcessing = &temp1;
 	auto fboStatus = graphicsComponents.postProcessing->InitializeSelf();
 	if (fboStatus != GL_FRAMEBUFFER_COMPLETE)
@@ -132,16 +153,21 @@ int main() {
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init();
 
-	Model sword("./sh_res/sh_3d/sword/scene.gltf");
-	Model tomb("./sh_res/sh_3d/tomb/scene.gltf");
-	Model statue("./sh_res/sh_3d/statue/scene.gltf");
-	Model ground("./sh_res/sh_3d/ground/scene.gltf");
-	Model grass("./sh_res/sh_3d/grass/scene.gltf");
-	Model cube1("./sh_res/sh_3d/cube/cube.gltf");
+	Model sword("./archive/sh_3d/sword/scene.gltf");
+	Model tomb("./archive/sh_3d/tomb/scene.gltf");
+	Model statue("./archive/sh_3d/statue/scene.gltf");
+	Model ground("./archive/sh_3d/ground/scene.gltf");
+	//Model grass("./archive/sh_3d/grass/scene.gltf");
+
+	Texture cube1Diffuse = Texture("./archive/sh_tex/debug_line_tex.png", "diffuse", 0);
+	Texture cube1Metallic = Texture("./archive/sh_tex/debug_line_tex.png", "specular", 0);
+	Model cube1("./archive/sh_3d/cube/cube.gltf", &cube1Diffuse, &cube1Metallic);
+
+	
 	hierarchy.insert({"Sword", &sword});
 	hierarchy.insert({"Tomb", &tomb});
 	hierarchy.insert({"Statue", &statue});
-	hierarchy.insert({"Grass", &grass});
+	//hierarchy.insert({"Grass", &grass});
 	hierarchy.insert({"Ground", &ground});
 	hierarchy.insert({"Cube #1", &cube1});
 
@@ -149,16 +175,22 @@ int main() {
 	cube1.Scale(glm::vec3(30, 0.5, 30));
 
 	SHINFO("PostProcessing > Skybox shader is loading...");
-	SkyBoxManager temp = SkyBoxManager("./sh_res/sh_shader/Skybox.vs", "./sh_res/sh_shader/Skybox.fs");
+	SkyBoxManager temp = SkyBoxManager("./archive/sh_shader/Skybox.vs", "./archive/sh_shader/Skybox.fs");
 	graphicsComponents.skyBox = &temp;
 	graphicsComponents.skyBox->InitializeSelf();
 	SHINFO("PostProcessing > Skybox shader is done loading!");
 	
 	SHINFO("PostProcessing > Loading ShadowMapHandler...");
-	ShadowMapHandler temp2("./sh_res/sh_shader/ShadowMap.vs", "./sh_res/sh_shader/ShadowMap.fs");
+	ShadowMapHandler temp2("./archive/sh_shader/ShadowMap.vs", "./archive/sh_shader/ShadowMap.fs");
 	graphicsComponents.shadowMapHandler = &temp2;
-	graphicsComponents.shadowMapHandler->InitializeSelf(lightPos);
+	graphicsComponents.shadowMapHandler->InitializeSelf(graphicsComponents.directinaLightAngle);
 	SHINFO("PostProcessing > ShadowMapHandler has been initialized successfully.");
+
+	std::vector<Texture> textures = {
+		Texture("./archive/sh_tex/brickwall/diffuse.png", "diffuse", 0)
+	};
+	Mesh plain(vertices, indices, textures);
+	Texture brickwallNormalTex = Texture("./archive/sh_tex/brickwall/normal.png", "normal", 1);
 
 	// glfwMaximizeWindow(window);
 	while (!glfwWindowShouldClose(window)) {
@@ -186,6 +218,10 @@ int main() {
 		glActiveTexture(GL_TEXTURE0 + 2);
 		glBindTexture(GL_TEXTURE_2D, graphicsComponents.shadowMapHandler->shadowMap);
 		coreProgram.SetInt("shadowMap", 2);
+
+		brickwallNormalTex.Bind();
+		coreProgram.SetInt("normal0", 1);
+		plain.Render(coreProgram, camera);
 
 		sword.Render(coreProgram, camera);
 		tomb.Render(coreProgram, camera);
@@ -222,6 +258,7 @@ int main() {
 	graphicsComponents.skyBox->Free();
 	graphicsComponents.postProcessing->Free();
 
+	SaveEngineConfig();
 	glfwDestroyWindow(window);
 	glfwTerminate();
 	return 0;
@@ -259,7 +296,7 @@ void imguiRenderpass() {
 
 	ImGui::Begin("World Options");
 	ImGui::Checkbox("Use Directional Light", &graphicsComponents.directionalLightEnabled);
-	ImGui::DragFloat3("DL Angle", glm::value_ptr(graphicsComponents.directinaLightAngle), 0.0, 2.0);
+	ImGui::DragFloat3("Directional Light Position", glm::value_ptr(graphicsComponents.directionalLightPosition), 0.0, 1000.0);
 	ImGui::Text("Render");
 	ImGui::Checkbox("Placebo Fog", &graphicsComponents.depthVisualizationEnabled);
 	ImGui::SliderFloat("Fog Level", &graphicsComponents.fogLevel, 0.0f, 100.0f);
@@ -284,6 +321,52 @@ void imguiRenderpass() {
 
 	ImGui::Render();
 	ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+}
+
+void LoadBackendData() {
+	ArchiveHandler engine_config("./archive/engine_config.archive", true);
+
+	if (engine_config.ShouldLoadDefault()) {
+		engine_config.SetBranch("PostProcessingComponents");
+		engine_config.SetBool("depthVisualizationEnabled", graphicsComponents.depthVisualizationEnabled);
+		engine_config.SetFloat("fogLevel", graphicsComponents.fogLevel);
+		engine_config.SetFloat("gamma", graphicsComponents.gamma);
+		engine_config.SetBranch("GraphicsComponents");
+		engine_config.SetBool("phongLightingEnabled", graphicsComponents.phongLightingEnabled);
+		engine_config.SetBranch("WorldComponents");
+		engine_config.SetBool("directionalLightEnabled", graphicsComponents.directionalLightEnabled);
+		engine_config.SetVec3("directionalLightPosition", graphicsComponents.directionalLightPosition);
+		engine_config.UpdateLocalFile();
+		SHINFO("Engine config file was created and loaded default 'GraphicsComponentsConfigurables'!");
+	}
+	else {
+		engine_config.SetBranch("PostProcessingComponents");
+		graphicsComponents.depthVisualizationEnabled = engine_config.FetchBool("depthVisualizationEnabled");
+		graphicsComponents.fogLevel = engine_config.FetchFloat("fogLevel");
+		graphicsComponents.gamma = engine_config.FetchFloat("gamma");
+		engine_config.SetBranch("GraphicsComponents");
+		graphicsComponents.phongLightingEnabled = engine_config.FetchBool("phongLightingEnabled");
+		engine_config.SetBranch("WorldComponents");
+		graphicsComponents.directionalLightEnabled = engine_config.FetchBool("directionalLightEnabled");
+		graphicsComponents.directionalLightPosition = engine_config.GetVec3("directionalLightPosition");
+		SHINFO("Engine config file was loaded into 'GraphicsComponentsConfigurables' successfully.");
+	}
+}
+
+void SaveEngineConfig() {
+	ArchiveHandler engine_config("./archive/engine_config.archive", true);
+
+	engine_config.SetBranch("PostProcessingComponents");
+	engine_config.SetBool("depthVisualizationEnabled", graphicsComponents.depthVisualizationEnabled);
+	engine_config.SetFloat("fogLevel", graphicsComponents.fogLevel);
+	engine_config.SetFloat("gamma", graphicsComponents.gamma);
+	engine_config.SetBranch("GraphicsComponents");
+	engine_config.SetBool("phongLightingEnabled", graphicsComponents.phongLightingEnabled);
+	engine_config.SetBranch("WorldComponents");
+	engine_config.SetBool("directionalLightEnabled", graphicsComponents.directionalLightEnabled);
+	engine_config.SetVec3("directionalLightPosition", graphicsComponents.directionalLightPosition);
+	engine_config.UpdateLocalFile();
+	SHINFO("Engine config file was saved with 'GraphicsComponentsConfigurables'!");
 }
 
 void window_resize_callback(GLFWwindow* window, int width, int height) {

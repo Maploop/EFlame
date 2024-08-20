@@ -13,6 +13,7 @@ struct GraphicsComponents {
 	bool depthVisualizationEnabled = true;
 	float fogLevel = 70.0;
 	glm::vec3 directinaLightAngle = glm::vec3(1.0, 1.0, 0.0);
+	glm::vec3 directionalLightPosition = glm::vec3(0.5f, 0.5f, 0.5f);
 
 	bool phongLightingEnabled = true;
 	float gamma = 2.2f;

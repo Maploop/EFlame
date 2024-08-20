@@ -64,6 +64,9 @@
     <ClCompile Include="ShadowMapHandler.cpp">
       <Filter>Engine\Core\Graphics</Filter>
     </ClCompile>
+    <ClCompile Include="ArchiveHandler.cpp">
+      <Filter>Engine\Core\Data</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
@@ -92,6 +95,9 @@
     </Filter>
     <Filter Include="Engine\Core\World">
       <UniqueIdentifier>{554cb266-2536-4d8b-bc20-1e76af3f5490}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Core\Data">
+      <UniqueIdentifier>{ecf9af92-8d8f-4a1f-95e9-8a2255b08b24}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -163,6 +169,12 @@
     </ClInclude>
     <ClInclude Include="ShadowMapHandler.h">
       <Filter>Engine\Core\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="ArchiveHandler.h">
+      <Filter>Engine\Core\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="MainDataHandler.h">
+      <Filter>Engine\Core\Data</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

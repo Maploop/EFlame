@@ -18,6 +18,24 @@ Model::Model(const char* file) {
 	TraverseNode(0);
 }
 
+Model::Model(const char* file, Texture* overrideDiff, Texture* overrideMet) {
+	SHINFO("ModelHandler > Loading model \"%s\"...", file);
+	// Make a JSON object
+	SetUseOverrideTextures(true);
+	SetOverrideTextureDiffuse(overrideDiff);
+	SetOverrideTextureMetallic(overrideMet);
+
+	std::string text = GetFileContents(file);
+	JSON = json::parse(text);
+
+	// Get the binary data
+	Model::file = file;
+	data = GetData();
+
+	// Traverse all nodes
+	TraverseNode(0);
+}
+
 void Model::Render(Shader& shader, Camera& camera) {
 	if (constantlyUpdated) {
 		for (unsigned int i = 0; i < meshes.size(); i++) {
@@ -70,6 +88,14 @@ void Model::Scale(float scale) {
 
 void Model::SetStatic(bool cached) {
 	this->constantlyUpdated = !cached;
+}
+
+void Model::SetOverrideTextureDiffuse(Texture* tex) {
+	this->overrideDiffuseTex = tex;
+}
+
+void Model::SetOverrideTextureMetallic(Texture* tex) {
+	this->overrideMetallicTex = tex;
 }
 
 void Model::LoadMesh(unsigned int indMesh) {
@@ -261,6 +287,18 @@ std::vector<GLuint> Model::GetIndices(json accessor) {
 
 std::vector<Texture> Model::GetTextures() {
 	std::vector<Texture> textures;
+
+	if (useOverrideTextures) {
+		textures.push_back(*overrideDiffuseTex);
+		textures.push_back(*overrideMetallicTex);
+		loadedTex.push_back(*overrideDiffuseTex);
+		loadedTex.push_back(*overrideMetallicTex);
+		loadedTexName.push_back("OVR_TEX_D");
+		loadedTexName.push_back("OVR_TEX_M");
+
+		SHDEBUG("Textures for x are overridden!");
+		return textures;
+	}
 
 	std::string fileStr = std::string(file);
 	std::string fileDirectory = fileStr.substr(0, fileStr.find_last_of('/') + 1);

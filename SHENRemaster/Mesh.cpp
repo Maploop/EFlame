@@ -20,7 +20,7 @@ Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<GLuint>& indices, std::vec
 	EBO.Unbind();
 }
 
-// manually render so i can update physics
+// manually render so i can update physics .
 void Mesh::Render(Shader& shader, Camera& camera,
 	glm::mat4 matrix, glm::vec3 translation,
 	glm::quat rotation, glm::vec3 scale, bool isStatic) {

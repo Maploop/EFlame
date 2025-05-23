@@ -67,6 +67,15 @@
     <ClCompile Include="ArchiveHandler.cpp">
       <Filter>Engine\Core\Data</Filter>
     </ClCompile>
+    <ClCompile Include="SQLDataSaver.cpp">
+      <Filter>Engine\Core\Data</Filter>
+    </ClCompile>
+    <ClCompile Include="PhysicsHandler.cpp">
+      <Filter>Engine\Core\Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>Engine\Core\Game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Engine">
@@ -98,6 +107,9 @@
     </Filter>
     <Filter Include="Engine\Core\Data">
       <UniqueIdentifier>{ecf9af92-8d8f-4a1f-95e9-8a2255b08b24}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Engine\Core\Physics">
+      <UniqueIdentifier>{fdb536b4-9a09-4526-9004-7f0cf0237590}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -175,6 +187,15 @@
     </ClInclude>
     <ClInclude Include="MainDataHandler.h">
       <Filter>Engine\Core\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="SQLDataSaver.h">
+      <Filter>Engine\Core\Data</Filter>
+    </ClInclude>
+    <ClInclude Include="PhysicsHandler.h">
+      <Filter>Engine\Core\Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>Engine\Core\Game</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

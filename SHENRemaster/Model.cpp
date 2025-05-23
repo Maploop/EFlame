@@ -27,6 +27,7 @@ Model::Model(const char* file, Texture* overrideDiff, Texture* overrideMet) {
 
 	std::string text = GetFileContents(file);
 	JSON = json::parse(text);
+	rotationDegrees = glm::degrees(rotation);
 
 	// Get the binary data
 	Model::file = file;
@@ -39,6 +40,10 @@ Model::Model(const char* file, Texture* overrideDiff, Texture* overrideMet) {
 void Model::Render(Shader& shader, Camera& camera) {
 	if (constantlyUpdated) {
 		for (unsigned int i = 0; i < meshes.size(); i++) {
+			rotationsMeshes[i] = glm::radians(rotationDegrees);
+		}
+
+		for (unsigned int i = 0; i < meshes.size(); i++) {
 			translationsMeshes[i] = position;
 		}
 
@@ -48,7 +53,7 @@ void Model::Render(Shader& shader, Camera& camera) {
 	}
 
 	for (unsigned int i = 0; i < meshes.size(); i++) {
-		meshes[i].Render(shader, camera, matricesMeshes[i], translationsMeshes[i], rotationsMeshes[i], scalesMeshes[i]);
+		meshes[i].Render(shader, camera, matricesMeshes[i], translationsMeshes[i], rotationsMeshes[i], scalesMeshes[i], this->isStatic);
 	}
 }
 
@@ -88,6 +93,7 @@ void Model::Scale(float scale) {
 
 void Model::SetStatic(bool cached) {
 	this->constantlyUpdated = !cached;
+	this->isStatic = cached;
 }
 
 void Model::SetOverrideTextureDiffuse(Texture* tex) {

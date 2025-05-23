@@ -168,6 +168,6 @@ void ArchiveHandler::SetVec4(std::string key, glm::vec4 value) {
 
 void ArchiveHandler::UpdateLocalFile() {
 	std::ofstream f(archiveFilePath);
-	f << std::setw(4) << data << std::endl;
+	f << std::setw(8) << data << std::endl;
 	f.close();
 }

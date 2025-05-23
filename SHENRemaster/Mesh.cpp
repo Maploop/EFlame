@@ -20,9 +20,10 @@ Mesh::Mesh(std::vector<Vertex>& vertices, std::vector<GLuint>& indices, std::vec
 	EBO.Unbind();
 }
 
-void Mesh::Render(Shader& shader, Camera& camera, 
+// manually render so i can update physics
+void Mesh::Render(Shader& shader, Camera& camera,
 	glm::mat4 matrix, glm::vec3 translation,
-	glm::quat rotation, glm::vec3 scale) {
+	glm::quat rotation, glm::vec3 scale, bool isStatic) {
 
 	shader.Activate();
 	VAO.Bind();

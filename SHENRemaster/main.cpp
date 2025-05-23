@@ -21,6 +21,7 @@
 #include "Game.h"
 #include "Model.h"
 #include "GraphicsComponents.h"
+#include "PhysicsHandler.h"
 
 const int OGL_MJV = 3;
 const int OGL_MNV = 3;
@@ -31,6 +32,7 @@ int SCR_WIDTH = 1920, SCR_HEIGHT = 1080;
 void LoadBackendData();
 void SaveEngineConfig();
 void imguiRenderpass();
+void InitiateWorldObjects();
 void window_resize_callback(GLFWwindow* window, int width, int height);
 
 static std::map<const char*, Model*> hierarchy;
@@ -153,24 +155,24 @@ int main() {
 	ImGui_ImplGlfw_InitForOpenGL(window, true);
 	ImGui_ImplOpenGL3_Init();
 
+	// TOOD: Fix 
+	/* 1. Load Neccessary Models */
 	Model sword("./archive/sh_3d/sword/scene.gltf");
 	Model tomb("./archive/sh_3d/tomb/scene.gltf");
 	Model statue("./archive/sh_3d/statue/scene.gltf");
 	Model ground("./archive/sh_3d/ground/scene.gltf");
 	//Model grass("./archive/sh_3d/grass/scene.gltf");
-
 	Texture cube1Diffuse = Texture("./archive/sh_tex/debug_line_tex.png", "diffuse", 0);
 	Texture cube1Metallic = Texture("./archive/sh_tex/debug_line_tex.png", "specular", 0);
 	Model cube1("./archive/sh_3d/cube/cube.gltf", &cube1Diffuse, &cube1Metallic);
 
-	
-	hierarchy.insert({"Sword", &sword});
-	hierarchy.insert({"Tomb", &tomb});
-	hierarchy.insert({"Statue", &statue});
-	//hierarchy.insert({"Grass", &grass});
-	hierarchy.insert({"Ground", &ground});
-	hierarchy.insert({"Cube #1", &cube1});
+	/* 2. Insert Models and objects into the hierarchy */
+	hierarchy.insert({ "sword", &sword });
+	hierarchy.insert({ "tomb", &tomb });
+	hierarchy.insert({ "statue", &statue });
+	hierarchy.insert({ "cube", &cube1 });
 
+	/* 3. Position and configure objects */
 	cube1.SetPosition(glm::vec3(0, -30, 0));
 	cube1.Scale(glm::vec3(30, 0.5, 30));
 
@@ -192,6 +194,16 @@ int main() {
 	Mesh plain(vertices, indices, textures);
 	Texture brickwallNormalTex = Texture("./archive/sh_tex/brickwall/normal.png", "normal", 1);
 
+	// enable and initialize physx
+	PhysicsHandler physicsHandler = PhysicsHandler();
+	if (physicsHandler.initPhysics()) {
+		std::cout << "PhysX confimed.";
+	}
+	else {
+		std::cerr << "PhysX critical error.";
+	}
+	
+
 	// glfwMaximizeWindow(window);
 	while (!glfwWindowShouldClose(window)) {
 		// PreP
@@ -208,7 +220,7 @@ int main() {
 		glClearColor(0.85f, 0.85f, 0.90f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		camera.HandleInput(window);
-		camera.UpdateMatrix(70.0f, 0.1f, 100.0f);
+		camera.UpdateMatrix(100.0f, 0.1f, 1000.0f);
 
 		glEnable(GL_DEPTH_TEST);
 
@@ -219,16 +231,9 @@ int main() {
 		glBindTexture(GL_TEXTURE_2D, graphicsComponents.shadowMapHandler->shadowMap);
 		coreProgram.SetInt("shadowMap", 2);
 
-		brickwallNormalTex.Bind();
-		coreProgram.SetInt("normal0", 1);
-		plain.Render(coreProgram, camera);
-
-		sword.Render(coreProgram, camera);
-		tomb.Render(coreProgram, camera);
-		statue.Render(coreProgram, camera);
-		cube1.Render(coreProgram, camera);
-		//grass.Render(coreProgram, camera);
-		//ground.Render(coreProgram, camera);
+		for (auto const& model : hierarchy) {
+			model.second->Render(coreProgram, camera);
+		}
 
 		coreProgram.Activate();
 		coreProgram.SetInt("directionalLightEnabled", graphicsComponents.directionalLightEnabled);
@@ -253,6 +258,7 @@ int main() {
 	}
 
 	SHINFO("ProcessHandler > Shutting down SHEN...");
+	physicsHandler.cleanupPhysX();
 	coreProgram.Free();
 	skyboxShader.Free();
 	graphicsComponents.skyBox->Free();
@@ -264,6 +270,10 @@ int main() {
 	return 0;
 }
 
+void InitiateWorldObjects() {
+	
+}
+
 glm::vec3 pos = glm::vec3(1.0, 1.0, 1.0);
 
 void imguiRenderpass() {
@@ -273,9 +283,12 @@ void imguiRenderpass() {
 
 	ImGui::Begin("General Options");
 	ImGui::SliderFloat("Camera Speed", &camera.speed, 0.01f, 1.0f);
-	if (ImGui::Button("Start Game Sequence")) {
+	if (ImGui::Button("Start Script Sequence")) {
 		SHWARN("(CALLBACK) GameHandler > Tried to call 'startGameSequence' but there is none?! (Check GAME.h)");
 		game.lowLevelStartGameSequence();
+	}
+	if (ImGui::Button("Import")) {
+		// SWinUtilities::openFileSelectionDialog();
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("Exit")) {
@@ -313,6 +326,7 @@ void imguiRenderpass() {
 			ImGui::Text(dat.c_str());
 			ImGui::DragFloat3("Position", glm::value_ptr(entity->position), 0.1);
 			ImGui::DragFloat3("Scale", glm::value_ptr(entity->scale), 0.1);
+			ImGui::DragFloat3("Rotation", glm::value_ptr(entity->rotationDegrees), 0.5, -360.0, 360.0);
 			ImGui::TreePop();
 		}
 	}

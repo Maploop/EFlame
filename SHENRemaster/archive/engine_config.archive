@@ -1,18 +1,18 @@
 {
-    "GraphicsComponents": {
-        "phongLightingEnabled": true
-    },
-    "PostProcessingComponents": {
-        "depthVisualizationEnabled": false,
-        "fogLevel": 20.170000076293945,
-        "gamma": 1.5089999437332153
-    },
-    "WorldComponents": {
-        "directionalLightEnabled": true,
-        "directionalLightPosition": {
-            "x": 500.0,
-            "y": 500.0,
-            "z": 500.0
+        "GraphicsComponents": {
+                "phongLightingEnabled": true
+        },
+        "PostProcessingComponents": {
+                "depthVisualizationEnabled": true,
+                "fogLevel": 10.164999961853027,
+                "gamma": 1.9830000400543213
+        },
+        "WorldComponents": {
+                "directionalLightEnabled": true,
+                "directionalLightPosition": {
+                        "x": 500.0,
+                        "y": 200.0,
+                        "z": 300.0
+                }
         }
-    }
 }

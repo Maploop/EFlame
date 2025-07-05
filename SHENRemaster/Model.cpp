@@ -1,7 +1,6 @@
 #include "Model.h"
 
 #include "logger.hpp"
-
 #include "glm/gtc/matrix_transform.hpp"
 
 Model::Model(const char* file) {
@@ -35,6 +34,22 @@ Model::Model(const char* file, Texture* overrideDiff, Texture* overrideMet) {
 
 	// Traverse all nodes
 	TraverseNode(0);
+}
+
+//using namespace physx;
+
+void Model::updateTransform() {
+	//if (!physicsActor) return;
+
+	//PxTransform transform = physicsActor->getGlobalPose();
+	//PxVec3 pos = transform.p;
+	//PxQuat rot = transform.q;
+
+	//glm::vec3 position(pos.x, pos.y, pos.z);
+	//glm::quat rotation(rot.w, rot.x, rot.y, rot.z);
+
+	//this->SetPosition(position);
+	//this->SetRotation(glm::eulerAngles(rotation)); // I know iam very stupid for doing it like this but please leave me alone.
 }
 
 void Model::Render(Shader& shader, Camera& camera) {

@@ -1,4 +1,5 @@
 #include "PhysicsHandler.h"
+#include "logger.hpp"
 
 PhysicsHandler::PhysicsHandler() {
 }
@@ -6,11 +7,12 @@ PhysicsHandler::PhysicsHandler() {
 PhysicsHandler::~PhysicsHandler() {
 }
 
-using namespace physx;
+// using namespace physx;
 bool PhysicsHandler::initPhysics() {
+	/*
 	gFoundation = PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorCallback);
 	if (!gFoundation) {
-		std::cerr << "PxCreateFoundation failure." << std::endl;
+		std::cerr << "PhysicsHandler > [ERROR] PxCreateFoundation failure." << std::endl;
 		return false;
 	}
 
@@ -27,12 +29,12 @@ bool PhysicsHandler::initPhysics() {
 
 	gPhysics = PxCreatePhysics(PX_PHYSICS_VERSION, *gFoundation, toleranceScale, true, gPvd);
 	if (!gPhysics) {
-		std::cerr << "PxCreatePhycis failure." << std::endl;
+		SHERROR("PhysicsHandler > PxCreatePhysics failure.");
 		return false;
 	}
 
 	if (!PxInitExtensions(*gPhysics, gPvd)) {
-		std::cerr << "PxInitExtensions failure.";
+		SHERROR("PhysicsHandler > PxInitExtensions failure.");
 		return false;
 	}
 
@@ -56,7 +58,7 @@ bool PhysicsHandler::initPhysics() {
 
 	gScene = gPhysics->createScene(sceneDesc);
 	if (!gScene) {
-		std::cerr << "createScene failure. (critical)";
+		SHFATAL("PhysicsHandler > createScene failure.");
 		return false;
 	}
 
@@ -69,12 +71,12 @@ bool PhysicsHandler::initPhysics() {
 
 	gMaterial = gPhysics->createMaterial(0.5f, 0.5f, 0.6f);
 	if (!gMaterial) {
-		std::cerr << "material create failure. (critical)" << std::endl;
+		SHFATAL("PhysicsHandler > create material screen failure.");
 		return false;
 	}
 
-	std::cout << "PhysX 5.0 was initialized.";
-
+	SHINFO("PhysicsHandler > PhysX 5.0 was successfully initialized.");
+	aaa
 	return true;
 }
 
@@ -98,5 +100,10 @@ void PhysicsHandler::cleanupPhysX() {
 
 	PX_RELEASE(gFoundation);
 
-	std::cout << "PhysX 5.0 cleanup successful.";
+	SHINFO("PhysicsHandler > PhysX 5.0 cleanup successful.");*/
+
+	return false;
+}
+
+void PhysicsHandler::cleanupPhysX() {
 }

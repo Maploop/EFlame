@@ -1,6 +1,6 @@
 #pragma once
 
-#include <PxPhysicsAPI.h>
+// #include <PxPhysicsAPI.h>
 #include <iostream>
 
 class PhysicsHandler {
@@ -11,7 +11,8 @@ public:
 	bool initPhysics();
 	void cleanupPhysX();
 
-protected:
+public:
+/*
 	physx::PxDefaultAllocator gAllocator;
 	physx::PxDefaultErrorCallback gErrorCallback;
 
@@ -20,6 +21,6 @@ protected:
 	physx::PxDefaultCpuDispatcher* gDispatcher = nullptr;
 	physx::PxScene* gScene = nullptr;
 	physx::PxMaterial* gMaterial = nullptr;
-	physx::PxPvd* gPvd = nullptr;
+	physx::PxPvd* gPvd = nullptr;*/
 };
 

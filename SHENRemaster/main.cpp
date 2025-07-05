@@ -25,14 +25,15 @@
 
 const int OGL_MJV = 3;
 const int OGL_MNV = 3;
-const char* APP_VERSION = "1.0-PRI";
+const char* APP_VERSION = "1.1-PrePhys";
 
-int SCR_WIDTH = 1920, SCR_HEIGHT = 1080;
+int SCR_WIDTH = 1280, SCR_HEIGHT = 720;
 
 void LoadBackendData();
 void SaveEngineConfig();
 void imguiRenderpass();
 void InitiateWorldObjects();
+void createGround();
 void window_resize_callback(GLFWwindow* window, int width, int height);
 
 static std::map<const char*, Model*> hierarchy;
@@ -42,6 +43,7 @@ Game game = Game();
 
 
 GraphicsComponents graphicsComponents;
+PhysicsHandler physicsHandler;
 Camera camera(SCR_WIDTH, SCR_HEIGHT, glm::vec3(0.0f, 0.0f, 2.0f));
 GLFWwindow* window;
 
@@ -64,14 +66,17 @@ std::vector<GLuint> indices =
 
 int main() {
 	SHEMPTY("");
-	SHEMPTY("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
+	SHEMPTY(">>--------------------------------------------<<");
 	SHEMPTY("");
 	SHEMPTY("	EFLAME ENGINE VER. %s", APP_VERSION);
 	SHEMPTY("");
-	SHEMPTY("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-");
+	SHEMPTY(">>--------------------------------------------<<");
 	SHEMPTY("");
-	SHEMPTY("Internal Logging Provided By EF Corp.");
-	SHEMPTY("If you are seeing this message it means you're looking at internal logs it illegally. Please don't.");
+	SHEMPTY("These internal logs are meant to be used by developers to");
+	SHEMPTY("debug or improve the engine's functionalities.");
+	SHEMPTY("");
+	SHEMPTY(">>---------------- LOG START -----------------<<");
+	SHEMPTY("");
 	SHEMPTY("");
 
 	LoadBackendData();
@@ -123,7 +128,14 @@ int main() {
 	coreProgram.SetVec4("lightColor", lightColor);
 	coreProgram.SetVec3("lightPos", graphicsComponents.directionalLightPosition);
 
-	
+	// enable and initialize physx
+	physicsHandler = PhysicsHandler();
+	if (physicsHandler.initPhysics()) {
+		SHINFO("System > PhysX confirmed.");
+	}
+	else {
+		SHFATAL("System > PhysX critical failure.");
+	}
 
 
 	//glEnable(GL_DEPTH_TEST);
@@ -161,16 +173,21 @@ int main() {
 	Model tomb("./archive/sh_3d/tomb/scene.gltf");
 	Model statue("./archive/sh_3d/statue/scene.gltf");
 	Model ground("./archive/sh_3d/ground/scene.gltf");
-	//Model grass("./archive/sh_3d/grass/scene.gltf");
+	Texture grassTexture = Texture("./archive/sh_tex/awesomeface.png", "diffuse", 0);
+	Model grass("./archive/sh_3d/grass/scene.gltf", &grassTexture, &grassTexture);
 	Texture cube1Diffuse = Texture("./archive/sh_tex/debug_line_tex.png", "diffuse", 0);
 	Texture cube1Metallic = Texture("./archive/sh_tex/debug_line_tex.png", "specular", 0);
 	Model cube1("./archive/sh_3d/cube/cube.gltf", &cube1Diffuse, &cube1Metallic);
+	// physx::PxRigidStatic* groundPlane = physx::PxCreatePlane(*physicsHandler.gPhysics, physx::PxPlane(0, 1, 0, 0), *physicsHandler.gMaterial);
+	// physicsHandler.gScene->addActor(*groundPlane);
+	// cube1.setPhysicsActor(groundPlane);
 
 	/* 2. Insert Models and objects into the hierarchy */
 	hierarchy.insert({ "sword", &sword });
-	hierarchy.insert({ "tomb", &tomb });
+	// hierarchy.insert({ "tomb", &tomb });
 	hierarchy.insert({ "statue", &statue });
-	hierarchy.insert({ "cube", &cube1 });
+	hierarchy.insert({ "ground_plane", &cube1 });
+	// hierarchy.insert({ "grass", &grass });
 
 	/* 3. Position and configure objects */
 	cube1.SetPosition(glm::vec3(0, -30, 0));
@@ -193,19 +210,18 @@ int main() {
 	};
 	Mesh plain(vertices, indices, textures);
 	Texture brickwallNormalTex = Texture("./archive/sh_tex/brickwall/normal.png", "normal", 1);
-
-	// enable and initialize physx
-	PhysicsHandler physicsHandler = PhysicsHandler();
-	if (physicsHandler.initPhysics()) {
-		std::cout << "PhysX confimed.";
-	}
-	else {
-		std::cerr << "PhysX critical error.";
-	}
 	
+	Shader grassShader = Shader("./archive/sh_shader/Core.vs", "./archive/sh_shader/Grass.fs");
 
+	float lastTime = glfwGetTime();
 	// glfwMaximizeWindow(window);
 	while (!glfwWindowShouldClose(window)) {
+		float currentTime = glfwGetTime();
+		float deltaTime = currentTime - lastTime;
+		lastTime = currentTime;
+
+		// physicsHandler.gScene->simulate(deltaTime);
+		// physicsHandler.gScene->fetchResults(true);
 		// PreP
 		graphicsComponents.shadowMapHandler->PreRender(graphicsComponents);
 		graphicsComponents.shadowMapHandler->Render(hierarchy, camera);
@@ -232,8 +248,10 @@ int main() {
 		coreProgram.SetInt("shadowMap", 2);
 
 		for (auto const& model : hierarchy) {
+			model.second->updateTransform();
 			model.second->Render(coreProgram, camera);
 		}
+		grass.Render(grassShader, camera);
 
 		coreProgram.Activate();
 		coreProgram.SetInt("directionalLightEnabled", graphicsComponents.directionalLightEnabled);
@@ -268,6 +286,10 @@ int main() {
 	glfwDestroyWindow(window);
 	glfwTerminate();
 	return 0;
+}
+
+void createGround() {
+	
 }
 
 void InitiateWorldObjects() {

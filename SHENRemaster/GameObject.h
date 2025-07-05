@@ -2,9 +2,9 @@
 
 #include "PhysicsHandler.h"
 
-using namespace physx;
+// using namespace physx;
 class GameObject {
-	PxRigidActor* physcisActor;
+	// PxRigidActor* physcisActor;
 	
 };
 

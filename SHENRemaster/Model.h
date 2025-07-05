@@ -2,6 +2,7 @@
 
 #include <json/json.hpp>
 #include "Mesh.h"
+#include "PhysicsHandler.h"
 
 using json = nlohmann::json;
 
@@ -10,6 +11,7 @@ public:
 	Model(const char* file);
 	Model(const char* file, Texture* overrideDiff, Texture* overrideMet);
 
+	void updateTransform();
 	void Render(Shader& shader, Camera& camera);
 
 	void SetPosition(glm::vec3 pos);
@@ -25,6 +27,8 @@ public:
 	
 	void SetUseOverrideTextures(bool flag) { useOverrideTextures = flag;  };
 
+	// void setPhysicsActor(physx::PxRigidActor* actor) { physicsActor = actor; };
+
 	glm::vec3 position = glm::vec3(0.0);
 	glm::vec3 rotation;
 	glm::vec3 rotationDegrees;
@@ -32,6 +36,8 @@ public:
 
 	std::vector<std::string> loadedTexName;
 	std::vector<Texture> loadedTex;
+
+	// physx::PxRigidActor* physicsActor;
 private:
 	const char* file;
 	std::vector<unsigned char> data;
